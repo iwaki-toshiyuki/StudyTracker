@@ -39,14 +39,19 @@ export default function Home() {
     // タスク編集用の関数
 
     if (editIndex === null) return;
+    // 編集対象がない場合は何もしない
 
     const newTasks = [...tasks];
+    // 現在のtasks配列をコピーして新しい配列を作成
 
     newTasks[editIndex] = editTask;
+    // 編集中のタスクの位置に新しい内容をセット
 
     setTasks(newTasks);
+    // 更新された配列をstateにセット
 
     setEditIndex(null);
+    // 編集モードを終了
 
   };
 
@@ -113,15 +118,19 @@ export default function Home() {
 
 
 
-             {editIndex === index ? (
+            {/* タスクの表示または編集フォーム */}
+            {editIndex === index ? (
+
 
               <>
+                {/* 編集モードの場合は入力フォームと保存ボタンを表示 */}
                 <input
                   value={editTask}
                   onChange={(e) => setEditTask(e.target.value)}
                   className="border px-2 py-1 flex-1"
                 />
 
+                {/* クリックするとタスク更新 */ }
                 <button
                   onClick={updateTask}
                   className="text-green-500 ml-2"
@@ -146,7 +155,9 @@ export default function Home() {
                 >
                   編集
                 </button>
+                {/* クリックすると編集モードに切り替わる */ }
               </>
+
 
             )}
 
