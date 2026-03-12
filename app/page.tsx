@@ -5,67 +5,53 @@
 import { useState } from "react";
 // Reactのstate管理フックをインポート
 
+import TaskForm from "../components/TaskForm";
+// 入力フォームコンポーネント
+
+import TaskList from "../components/TaskList";
+// タスク一覧コンポーネント
+
 export default function Home() {
-// Homeコンポーネント（トップページ）
 
   const [task, setTask] = useState("");
-  // 入力中のタスクを保存するstate
-  // task → 現在入力されている値
-  // setTask → taskを更新する関数
+  // 入力中のタスクを管理
 
   const [tasks, setTasks] = useState<string[]>([]);
-  // タスク一覧を保存するstate
-  // string[] → 文字列の配列（TypeScriptで型指定）
+  // タスク一覧を管理
 
   const addTask = () => {
-  // タスクを追加する関数
+  // タスク追加関数
 
     setTasks([...tasks, task]);
-    // 既存のtasks配列に新しいtaskを追加する
-    // ...tasks はスプレッド構文で配列を展開
+    // tasks配列に新しいtaskを追加
 
     setTask("");
-    // タスク追加後、入力フォームを空にする
-
-  };
-
-  const [editIndex, setEditIndex] = useState<number | null>(null);
-  // 編集中のタスクのindex
-
-    const [editTask, setEditTask] = useState("");
-    // 編集中のタスク内容
-
-    const updateTask = () => {
-    // タスク編集用の関数
-
-    if (editIndex === null) return;
-    // 編集対象がない場合は何もしない
-
-    const newTasks = [...tasks];
-    // 現在のtasks配列をコピーして新しい配列を作成
-
-    newTasks[editIndex] = editTask;
-    // 編集中のタスクの位置に新しい内容をセット
-
-    setTasks(newTasks);
-    // 更新された配列をstateにセット
-
-    setEditIndex(null);
-    // 編集モードを終了
+    // 入力フォームを空にする
 
   };
 
   const deleteTask = (index: number) => {
-  // タスク削除用の関数
-  // index → 削除するタスクの位置
+  // タスク削除関数
 
     const newTasks = tasks.filter((_, i) => i !== index);
-    // filterを使って削除対象以外のタスクを新しい配列にする
-    // _ → 使わない引数
-    // i → 配列のインデックス
+    // 削除対象以外のタスクを新しい配列にする
 
     setTasks(newTasks);
-    // 新しい配列をstateにセット
+    // state更新
+
+  };
+
+  const updateTask = (index: number, newTask: string) => {
+  // 編集保存
+
+    const newTasks = [...tasks];
+    // タスク配列をコピー
+
+    newTasks[index] = newTask;
+    // 編集されたタスク内容を更新
+
+    setTasks(newTasks);
+    // state更新
 
   };
 
@@ -73,110 +59,29 @@ export default function Home() {
 
     <main className="min-h-screen flex items-center justify-center bg-gray-100">
 
+      {/* アプリ全体のカードUI */}
       <div className="bg-white p-8 rounded-xl shadow-md w-[400px]">
 
+        {/* タイトル */}
         <h1 className="text-2xl font-bold mb-6 text-center">
           Study Tracker
         </h1>
-         {/* 入力フォーム */}
 
-      <div className="flex gap-2 mb-6">
-
-        <input
-          type="text"
-          value={task}
-          // 入力フォームの値をtaskと連動させる
-
-          onChange={(e) => setTask(e.target.value)}
-          // 入力された値をtask stateに保存
-
-          placeholder="タスクを入力"
-
-          className="border rounded px-3 py-2 w-full"
+        {/* タスク入力フォーム */}
+        <TaskForm
+          task={task}
+          setTask={setTask}
+          addTask={addTask}
         />
 
-        <button
-            // タスク追加ボタン
-            onClick={addTask}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          追加
-        </button>
-      </div>
-      {/* クリックするとタスク追加 */}
-
-      <ul className="space-y-2">
-
-        {tasks.map((task, index) => (
-        // tasks配列をmapでループして表示
-
-          <li
-              key={index}
-              className="flex justify-between items-center border p-3 rounded"
-          >
-            {/* keyはReactでリスト表示する際に必要 */}
-
-
-
-            {/* タスクの表示または編集フォーム */}
-            {editIndex === index ? (
-
-
-              <>
-                {/* 編集モードの場合は入力フォームと保存ボタンを表示 */}
-                <input
-                  value={editTask}
-                  onChange={(e) => setEditTask(e.target.value)}
-                  className="border px-2 py-1 flex-1"
-                />
-
-                {/* クリックするとタスク更新 */ }
-                <button
-                  onClick={updateTask}
-                  className="text-green-500 ml-2"
-                >
-                  保存
-                </button>
-              </>
-
-            ) : (
-
-              <>
-
-              <span>{task}</span>
-
-
-                <button
-                  onClick={() => {
-                    setEditIndex(index);
-                    setEditTask(task);
-                  }}
-                  className="text-blue-500 ml-2"
-                >
-                  編集
-                </button>
-                {/* クリックすると編集モードに切り替わる */ }
-              </>
-
-
-            )}
-
-            <button
-                onClick={() => deleteTask(index)}
-                className="text-red-500 hover:text-red-700"
-            >
-              削除
-            </button>
-            {/* クリックすると該当タスク削除 */}
-
-          </li>
-
-        ))}
-
-        </ul>
+        {/* タスク一覧 */}
+        <TaskList
+          tasks={tasks}
+          deleteTask={deleteTask}
+          updateTask={updateTask}
+        />
 
       </div>
-
     </main>
 
   );
