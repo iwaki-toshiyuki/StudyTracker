@@ -1,25 +1,29 @@
 import { useState } from "react";
-
+import { Task } from "../components/Task";
 
 // propsの型定義
 type Props = {
-  task: string; // タスク内容
+  task: Task; // タスク内容
   index: number; // タスクの位置
   deleteTask: (index: number) => void; // 削除関数
-  updateTask: (index: number, newTask: string) => void; // 編集保存関数
+  updateTask: (index: number, newTask: Task) => void; // 編集保存関数
+  toggleTask: (index:number) => void; // タスク完了状態切り替え関数
 };
 
-export default function TaskItem({ task, index, deleteTask, updateTask }: Props) {
+export default function TaskItem({ task, index, deleteTask, updateTask,toggleTask }: Props) {
 const [isEditing, setIsEditing] = useState(false);
   // 編集モードかどうか
 
-  const [editTask, setEditTask] = useState(task);
+  const [editTask, setEditTask] = useState(task.text);
   // 編集中のタスク内容
 
   const handleSave = () => {
   // 編集保存
 
-    updateTask(index, editTask);
+    updateTask(index, {
+    ...task, // 元のtaskオブジェクトをコピー
+    text: editTask // textだけ更新
+    });
 
     setIsEditing(false);
 
@@ -40,6 +44,14 @@ const [isEditing, setIsEditing] = useState(false);
             className="border px-2 py-1 flex-1"
           />
 
+          {/* タスク完了チェック */}
+          <input
+            type="checkbox"
+            checked={task.done}
+            onChange={() => toggleTask(index)}
+          />
+
+
           <button
             onClick={handleSave}
             className="text-green-500 ml-2"
@@ -54,7 +66,11 @@ const [isEditing, setIsEditing] = useState(false);
         <>
           {/* タスク表示 */}
 
-          <span>{task}</span>
+          <span
+            className={task.done ? "line-through text-gray-400" : ""}
+          >
+            {task.text}
+          </span>
 
           <button
             onClick={() => setIsEditing(true)}
