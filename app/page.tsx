@@ -4,7 +4,7 @@
 
 import { Task } from "../components/Task";
 
-import { useState } from "react";
+import { useState, useEffect} from "react";
 // Reactのstate管理フックをインポート
 
 import TaskForm from "../components/TaskForm";
@@ -73,6 +73,25 @@ export default function Home() {
 
 };
 
+// 初回ロード時にLocalStorageからタスクを取得
+useEffect(() => {
+
+  const savedTasks = localStorage.getItem("tasks");
+  // LocalStorageからtasksを取得
+
+  if (savedTasks) {
+    setTasks(JSON.parse(savedTasks));
+    // JSON文字列を配列に戻してstateにセット
+  }
+
+}, []);
+
+// tasks変更時にLocalStorageへ保存
+  useEffect(() => {
+
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+
+  }, [tasks]);
 
 
   return (
