@@ -2,7 +2,7 @@
 // Next.jsのApp Routerでは、Reactのstateやイベントを使う場合は
 // クライアントコンポーネントとして宣言する必要がある
 
-import { Task } from "../components/Task";
+import { Task, StudyLog } from "../components/Task";
 
 import { useState, useEffect} from "react";
 // Reactのstate管理フックをインポート
@@ -26,6 +26,7 @@ export default function Home() {
     setTasks([
     ...tasks,
     {
+      id: Date.now(), // ←一意なIDを生成
       text: task,   // タスク内容
       done: false   // 初期状態は未完了
     }
@@ -70,6 +71,25 @@ export default function Home() {
   newTasks[index].done = !newTasks[index].done;
 
   setTasks(newTasks);
+
+};
+
+// 学習ログ一覧
+// 全ての学習ログを管理
+const [studyLogs, setStudyLogs] = useState<StudyLog[]>([]);
+
+
+// 学習ログ追加関数
+const addStudyLog = (taskId: number, minutes: number) => {
+
+  const newLog = {
+    taskId: taskId, // ←タスクのIDを保存
+    minutes: minutes,     // 学習時間
+    date: new Date().toISOString() // 現在日時
+  };
+
+  setStudyLogs((prev) => [...prev, newLog]);
+  // 配列に追加
 
 };
 
@@ -119,6 +139,8 @@ useEffect(() => {
           deleteTask={deleteTask}
           updateTask={updateTask}
           toggleTask={toggleTask}
+          addStudyLog={addStudyLog}
+          studyLogs={studyLogs}
         />
 
       </div>

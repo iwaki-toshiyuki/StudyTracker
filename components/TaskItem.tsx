@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Task } from "../components/Task";
+import { Task,  StudyLog } from "../components/Task";
 
 // propsの型定義
 type Props = {
@@ -8,9 +8,11 @@ type Props = {
   deleteTask: (index: number) => void; // 削除関数
   updateTask: (index: number, newTask: Task) => void; // 編集保存関数
   toggleTask: (index:number) => void; // タスク完了状態切り替え関数
+  addStudyLog: (index: number, minutes: number) => void; // 学習ログ追加関数
+  studyLogs: StudyLog[]; // 学習ログ一覧
 };
 
-export default function TaskItem({ task, index, deleteTask, updateTask,toggleTask }: Props) {
+export default function TaskItem({ task, index, deleteTask, updateTask,toggleTask, addStudyLog, studyLogs }: Props) {
 const [isEditing, setIsEditing] = useState(false);
   // 編集モードかどうか
 
@@ -29,6 +31,20 @@ const [isEditing, setIsEditing] = useState(false);
 
   };
 
+  // 学習時間入力用state
+  const [minutes, setMinutes] = useState("");
+
+  // このタスクのログだけ取得
+  const filteredLogs = studyLogs.filter(
+  (log) => log.taskId === task.id
+);
+
+  // 合計時間を計算
+  const totalMinutes = filteredLogs.reduce(
+    (sum, log) => sum + log.minutes,
+    0
+  );
+
   return (
 
     <li className="flex justify-between items-center border p-3 rounded">
@@ -43,6 +59,25 @@ const [isEditing, setIsEditing] = useState(false);
             onChange={(e) => setEditTask(e.target.value)}
             className="border px-2 py-1 flex-1"
           />
+
+          {/* 学習時間入力 */}
+          <input
+            type="number"
+            value={minutes}
+            onChange={(e) => setMinutes(e.target.value)}
+            placeholder="分"
+            className="border px-2 py-1 w-20"
+          />
+
+          {/* 学習ログ追加ボタン */}
+          <button
+            onClick={() => {
+              addStudyLog(task.id, Number(minutes));
+              setMinutes(""); // 入力リセット
+            }}
+          >
+            記録
+          </button>
 
           {/* タスク完了チェック */}
           <input
@@ -69,7 +104,7 @@ const [isEditing, setIsEditing] = useState(false);
           <span
             className={task.done ? "line-through text-gray-400" : ""}
           >
-            {task.text}
+            {task.text}（合計: {totalMinutes}分）
           </span>
 
           <button
