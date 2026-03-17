@@ -20,6 +20,9 @@ export default function Home() {
   // 入力中のタスクを管理
   const [tasks, setTasks] = useState<Task[]>([]);
 
+  // タグ入力用
+  const [tag, setTag] = useState("");
+
   const addTask = () => {
   // タスク追加関数
 
@@ -28,12 +31,13 @@ export default function Home() {
     {
       id: Date.now(), // ←一意なIDを生成
       text: task,   // タスク内容
-      done: false   // 初期状態は未完了
+      done: false ,  // 初期状態は未完了
+      tag: tag      // タグも保存
     }
   ]);
 
-    setTask("");
-    // 入力フォームを空にする
+    setTask(""); // 入力リセット
+    setTag("");  // タグもリセット
 
   };
 

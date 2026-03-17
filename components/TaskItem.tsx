@@ -13,18 +13,22 @@ type Props = {
 };
 
 export default function TaskItem({ task, index, deleteTask, updateTask,toggleTask, addStudyLog, studyLogs }: Props) {
-const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   // 編集モードかどうか
 
   const [editTask, setEditTask] = useState(task.text);
   // 編集中のタスク内容
+
+  const [editTag, setEditTag] = useState(task.tag);
+  // 編集用state
 
   const handleSave = () => {
   // 編集保存
 
     updateTask(index, {
     ...task, // 元のtaskオブジェクトをコピー
-    text: editTask // textだけ更新
+    text: editTask, // textだけ更新
+    tag: editTag // tagも更新
     });
 
       // 🔥 学習ログ追加（ここが重要）
@@ -64,9 +68,17 @@ const [isEditing, setIsEditing] = useState(false);
           {/* 編集入力フォーム */}
           <div className="flex flex-wrap items-center gap-2 w-full">
 
+            {/* 編集時タスク入力 */}
             <input
               value={editTask}
               onChange={(e) => setEditTask(e.target.value)}
+              className="border px-2 py-1"
+            />
+
+            {/* 編集時タグ入力 */}
+            <input
+              value={editTag}
+              onChange={(e) => setEditTag(e.target.value)}
               className="border px-2 py-1"
             />
 
@@ -116,7 +128,7 @@ const [isEditing, setIsEditing] = useState(false);
           <span
             className={task.done ? "line-through text-gray-400" : ""}
           >
-            {task.text}（合計: {totalMinutes}分）
+            {task.text} ({task.tag})（合計: {totalMinutes}分）
           </span>
 
           <button

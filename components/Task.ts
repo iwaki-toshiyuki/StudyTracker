@@ -3,6 +3,7 @@ export type Task = {
   id: number; // タスクの一意なID
   text: string; // タスク内容
   done: boolean; // 完了状態
+  tag: string;   // 技術タグ
 };
 
 // 学習ログ型
