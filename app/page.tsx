@@ -130,13 +130,28 @@ const tagSummary = studyLogs.reduce((acc, log) => {
 
 }, {} as Record<string, number>);
 
-// チャート用データに変換
-const chartData = Object.entries(tagSummary).map(([tag, minutes]) => ({
-  name: tag,
-  value: minutes,
-}));
+// 配列に変換
+const sorted = Object.entries(tagSummary)
+  .map(([tag, minutes]) => ({
+    name: tag,
+    value: minutes,
+  }))
+  .sort((a, b) => b.value - a.value); // 多い順に並べる
 
-console.log(chartData);
+// 上位5件
+const top5 = sorted.slice(0, 5);
+
+// それ以外
+const others = sorted.slice(5);
+
+// Others合計
+const othersSum = others.reduce((sum, item) => sum + item.value, 0);
+
+// 最終データ
+const chartData = [
+  ...top5,
+  ...(othersSum > 0 ? [{ name: "Others", value: othersSum }] : [])
+];
 
 // 初回ロード時にLocalStorageからタスクを取得
 useEffect(() => {
