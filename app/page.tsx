@@ -20,6 +20,7 @@ export default function Home() {
   // 入力中のタスクを管理
   const [tasks, setTasks] = useState<Task[]>([]);
 
+
   const addTask = () => {
   // タスク追加関数
 
@@ -28,12 +29,13 @@ export default function Home() {
     {
       id: Date.now(), // ←一意なIDを生成
       text: task,   // タスク内容
-      done: false   // 初期状態は未完了
+      done: false ,  // 初期状態は未完了
+      tag: tag      // タグも保存
     }
   ]);
 
-    setTask("");
-    // 入力フォームを空にする
+    setTask(""); // 入力リセット
+    setTag("");  // タグもリセット
 
   };
 
@@ -93,6 +95,14 @@ const addStudyLog = (taskId: number, minutes: number) => {
 
 };
 
+  // タグ入力用
+  const [tag, setTag] = useState("");
+
+// 重複なしタグ一覧を作成
+  const uniqueTags = Array.from(
+  new Set(tasks.map((task) => task.tag))
+);
+
 // 初回ロード時にLocalStorageからタスクを取得
 useEffect(() => {
 
@@ -130,6 +140,9 @@ useEffect(() => {
         <TaskForm
           task={task}
           setTask={setTask}
+          tag={tag}
+          setTag={setTag}
+          uniqueTags={uniqueTags}
           addTask={addTask}
         />
 
@@ -144,6 +157,7 @@ useEffect(() => {
         />
 
       </div>
+
     </main>
 
   );
