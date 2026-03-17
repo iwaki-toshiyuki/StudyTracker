@@ -2,7 +2,7 @@
 // Next.jsのApp Routerでは、Reactのstateやイベントを使う場合は
 // クライアントコンポーネントとして宣言する必要がある
 
-import { Task, StudyLog } from "../components/Task";
+import { Task, StudyLog } from '../components/Task';
 
 import { useState, useEffect} from "react";
 // Reactのstate管理フックをインポート
@@ -12,6 +12,9 @@ import TaskForm from "../components/TaskForm";
 
 import TaskList from "../components/TaskList";
 // タスク一覧コンポーネント
+
+import Chart from "../components/Chart";
+// 学習時間をタグごとに集計して表示するチャートコンポーネント
 
 
 export default function Home() {
@@ -30,7 +33,8 @@ export default function Home() {
       id: Date.now(), // ←一意なIDを生成
       text: task,   // タスク内容
       done: false ,  // 初期状態は未完了
-      tag: tag      // タグも保存
+      tag: tag,      // タグも保存
+      totalMinutes: 0 // 累計学習時間も初期化
     }
   ]);
 
@@ -103,6 +107,37 @@ const addStudyLog = (taskId: number, minutes: number) => {
   new Set(tasks.map((task) => task.tag))
 );
 
+// タグごとの学習時間集計
+const tagSummary = studyLogs.reduce((acc, log) => {
+
+  // taskIdからタスクを取得
+  const task = tasks.find((t) => t.id === log.taskId);
+
+  // タスクが見つからない場合はスキップ
+  if (!task) return acc;
+
+  // タグをキーにして学習時間を加算
+  const tag = task.tag;
+
+  // 初めてのタグなら初期化
+  if (!acc[tag]) {
+    acc[tag] = 0;
+  }
+  // 学習時間を加算
+  acc[tag] += log.minutes;
+
+  return acc;
+
+}, {} as Record<string, number>);
+
+// チャート用データに変換
+const chartData = Object.entries(tagSummary).map(([tag, minutes]) => ({
+  name: tag,
+  value: minutes,
+}));
+
+console.log(chartData);
+
 // 初回ロード時にLocalStorageからタスクを取得
 useEffect(() => {
 
@@ -155,6 +190,9 @@ useEffect(() => {
           addStudyLog={addStudyLog}
           studyLogs={studyLogs}
         />
+
+        <Chart data={chartData} />
+
 
       </div>
 
