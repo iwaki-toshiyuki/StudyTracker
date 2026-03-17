@@ -27,6 +27,15 @@ const [isEditing, setIsEditing] = useState(false);
     text: editTask // textだけ更新
     });
 
+      // 🔥 学習ログ追加（ここが重要）
+    if (minutes) {
+      addStudyLog(task.id, Number(minutes));
+    }
+
+    // 入力リセット
+    setMinutes("");
+
+    // 編集モード終了
     setIsEditing(false);
 
   };
@@ -47,58 +56,61 @@ const [isEditing, setIsEditing] = useState(false);
 
   return (
 
-    <li className="flex justify-between items-center border p-3 rounded">
+    <li className="border p-3 rounded">
 
       {isEditing ? (
 
         <>
           {/* 編集入力フォーム */}
+          <div className="flex flex-wrap items-center gap-2 w-full">
 
-          <input
-            value={editTask}
-            onChange={(e) => setEditTask(e.target.value)}
-            className="border px-2 py-1 flex-1"
-          />
+            <input
+              value={editTask}
+              onChange={(e) => setEditTask(e.target.value)}
+              className="border px-2 py-1"
+            />
 
-          {/* 学習時間入力 */}
-          <input
-            type="number"
-            value={minutes}
-            onChange={(e) => setMinutes(e.target.value)}
-            placeholder="分"
-            className="border px-2 py-1 w-20"
-          />
+            {/* 学習時間入力 */}
+            <input
+              type="number"
+              value={minutes}
+              onChange={(e) => setMinutes(e.target.value)}
+              placeholder="分"
+              className="border px-2 py-1 w-20"
+            />
 
-          {/* 学習ログ追加ボタン */}
+            {/* タスク完了チェック */}
+            <input
+              type="checkbox"
+              checked={task.done}
+              onChange={() => toggleTask(index)}
+            />
+
+
+            <button
+              onClick={handleSave}
+              className="text-green-500 ml-2"
+            >
+              保存
+            </button>
+
+
+          {/* 削除ボタン */}
+
           <button
-            onClick={() => {
-              addStudyLog(task.id, Number(minutes));
-              setMinutes(""); // 入力リセット
-            }}
+            onClick={() => deleteTask(index)}
+            className="text-red-500 ml-2"
           >
-            記録
+            削除
           </button>
-
-          {/* タスク完了チェック */}
-          <input
-            type="checkbox"
-            checked={task.done}
-            onChange={() => toggleTask(index)}
-          />
-
-
-          <button
-            onClick={handleSave}
-            className="text-green-500 ml-2"
-          >
-            保存
-          </button>
+      </div>
 
         </>
 
       ) : (
 
         <>
+         <div className="flex justify-between items-center w-full">
           {/* タスク表示 */}
 
           <span
@@ -114,19 +126,19 @@ const [isEditing, setIsEditing] = useState(false);
             編集
           </button>
 
+          {/* 削除ボタン */}
+
+          <button
+            onClick={() => deleteTask(index)}
+            className="text-red-500 ml-2"
+          >
+            削除
+        </button>
+        </div>
+
         </>
 
       )}
-
-      {/* 削除ボタン */}
-
-      <button
-        onClick={() => deleteTask(index)}
-        className="text-red-500 ml-2"
-      >
-        削除
-      </button>
-
     </li>
 
   );
