@@ -4,6 +4,7 @@ export type Task = {
   text: string; // タスク内容
   done: boolean; // 完了状態
   tag: string;   // 技術タグ
+  totalMinutes: number; // 累計学習時間
 };
 
 // 学習ログ型
