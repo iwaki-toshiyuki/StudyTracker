@@ -49,7 +49,7 @@ export default function TaskForm({ task, setTask, addTask, tag, setTag, uniqueTa
               setTag(e.target.value);
               setIsOpen(true); // 入力したら必ず開く
             }}
-            placeholder="タグ"
+            placeholder="タグを入力"
             className="w-full px-2 py-2 outline-none"
             onFocus={() => setIsOpen(true)} // フォーカスで開く
             onBlur={() => setTimeout(() => setIsOpen(false), 100)} // 少し遅らせて閉じる
