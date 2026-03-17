@@ -20,8 +20,6 @@ export default function Home() {
   // 入力中のタスクを管理
   const [tasks, setTasks] = useState<Task[]>([]);
 
-  // タグ入力用
-  const [tag, setTag] = useState("");
 
   const addTask = () => {
   // タスク追加関数
@@ -97,6 +95,14 @@ const addStudyLog = (taskId: number, minutes: number) => {
 
 };
 
+  // タグ入力用
+  const [tag, setTag] = useState("");
+
+// 重複なしタグ一覧を作成
+  const uniqueTags = Array.from(
+  new Set(tasks.map((task) => task.tag))
+);
+
 // 初回ロード時にLocalStorageからタスクを取得
 useEffect(() => {
 
@@ -134,6 +140,9 @@ useEffect(() => {
         <TaskForm
           task={task}
           setTask={setTask}
+          tag={tag}
+          setTag={setTag}
+          uniqueTags={uniqueTags}
           addTask={addTask}
         />
 
@@ -148,6 +157,7 @@ useEffect(() => {
         />
 
       </div>
+
     </main>
 
   );
