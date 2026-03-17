@@ -19,12 +19,14 @@ export default function TaskForm({ task, setTask, addTask, tag, setTag, uniqueTa
   return (
 
     // タスク入力エリア
-    <div className="flex gap-2 mb-6">
+    <div className="mb-6">
+
+      <div className="flex border rounded">
 
       {/* タスク入力フォーム */}
       <input
         type="text"
-        value={task} 
+        value={task}
         // 入力フォームの値をstateと同期
 
         onChange={(e) => setTask(e.target.value)}
@@ -32,47 +34,51 @@ export default function TaskForm({ task, setTask, addTask, tag, setTag, uniqueTa
 
         placeholder="タスクを入力"
 
-        className="border rounded px-3 py-2 w-full"
+        className="flex-1 px-3 py-2 outline-none"
       />
 
-       {/* タグ入力 */}
-      <input
-        type="text"
-        value={tag}
-        onChange={(e) => setTag(e.target.value)}
-        placeholder="タグ（例: React）"
-        className="border px-3 py-2 w-full"
-      />
+       {/* ▼ タグ選択 */}
+      <div className="relative w-40 border-l">
 
-       <div className="relative w-60">
 
-      {/* ▼ トリガー（入力っぽいやつ） */}
-      <div
-        onClick={() => setIsOpen(!isOpen)}
-        className="border px-3 py-2 rounded cursor-pointer bg-white"
-      >
-        {tag || "タグを選択してください"}
+          {/* 入力フィールド */}
+          <input
+            type="text"
+            value={tag}
+            onChange={(e) => {
+              setTag(e.target.value);
+              setIsOpen(true); // 入力したら必ず開く
+            }}
+            placeholder="タグ"
+            className="w-full px-2 py-2 outline-none"
+            onFocus={() => setIsOpen(true)} // フォーカスで開く
+            onBlur={() => setTimeout(() => setIsOpen(false), 100)} // 少し遅らせて閉じる
+          />
+
+          {/* ▼ ドロップダウン */}
+          {isOpen && uniqueTags.length > 0 && (
+            <div className="absolute top-full left-0 w-full bg-white border rounded shadow-md mt-1 z-10">
+
+              {uniqueTags
+                .filter((t) =>
+                t.toLowerCase().includes(tag.toLowerCase())
+                ).map((t: string) => (
+                <div
+                  key={t}
+                  onMouseDown={() => {
+                  // ⚠️ onClickだとblurで消える
+                  setTag(t);
+                  setIsOpen(false);
+                }}
+                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                >
+                  {t}
+                </div>
+              ))}
+
+          </div>
+        )}
       </div>
-
-      {/* ▼ ドロップダウン */}
-      {isOpen && (
-        <div className="absolute top-full left-0 w-full bg-white border rounded shadow-md mt-1 z-10">
-
-          {uniqueTags.map((t: string) => (
-            <div
-              key={t}
-              onClick={() => {
-                setTag(t);
-                setIsOpen(false); // 選択したら閉じる
-              }}
-              className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-            >
-              {t}
-            </div>
-          ))}
-
-        </div>
-      )}
 
     </div>
 
@@ -83,9 +89,6 @@ export default function TaskForm({ task, setTask, addTask, tag, setTag, uniqueTa
       >
         追加
       </button>
-
-
-
     </div>
 
   );
