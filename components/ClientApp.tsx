@@ -2,6 +2,12 @@
 // Next.jsのApp Routerでは、Reactのstateやイベントを使う場合は
 // クライアントコンポーネントとして宣言する必要がある
 
+type Props = {
+    // クライアントコンポーネントのprops型
+    initialTasks: Task[];
+    initialLogs: StudyLog[];
+};
+
 import { Task, StudyLog } from "../components/Types";
 
 import { useState, useEffect} from "react";
@@ -19,10 +25,10 @@ import Chart from "../components/Chart";
 import Dashboard from "../components/DashBoard";
 // 全体の学習時間や達成率を表示するダッシュボードコンポーネント
 
-export default function ClientApp() {
+export default function ClientApp({ initialTasks, initialLogs }: Props) {
   const [task, setTask] = useState("");
   // 入力中のタスクを管理
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
 
   const addTask = () => {
     // タスク追加関数
@@ -77,7 +83,7 @@ export default function ClientApp() {
 
   // 学習ログ一覧
   // 全ての学習ログを管理
-  const [studyLogs, setStudyLogs] = useState<StudyLog[]>([]);
+  const [studyLogs, setStudyLogs] = useState<StudyLog[]>(initialLogs);
 
   // 学習ログ追加関数
   const addStudyLog = (taskId: number, minutes: number) => {
