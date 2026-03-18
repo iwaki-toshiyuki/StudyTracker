@@ -1,8 +1,10 @@
 import ClientApp from "../components/ClientApp";
 
 async function getTasks() {
-  // 仮API（後で自作APIに置き換える）
-  return [];
+  const res = await fetch("http://localhost:3000/api/tasks", {
+    cache: "no-store", // 常に最新取得
+  });
+  return res.json();
 }
 
 export default async function Page() {
@@ -19,3 +21,5 @@ export default async function Page() {
     />
   );
 }
+
+

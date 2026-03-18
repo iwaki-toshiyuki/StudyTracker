@@ -30,9 +30,18 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   // 入力中のタスクを管理
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
 
-  const addTask = () => {
-    // タスク追加関数
+  const addTask = async() => {
+    // APIに送信
+    await fetch("/api/tasks", {
+      method: "POST",
+      body: JSON.stringify({
+        text: task,
+        tag: tag,
+      }),
+    });
 
+
+    // タスク追加関数
     setTasks([
       ...tasks,
       {
@@ -169,6 +178,13 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   // 全タスク数
   const totalTaskCount = tasks.length;
 
+  // タスクをAPIから再取得する関数
+  const fetchTasks = async () => {
+  const res = await fetch("/api/tasks");
+  const data = await res.json();
+  setTasks(data);
+};
+
 
   // -------------------- tasks --------------------
 
@@ -202,6 +218,11 @@ useEffect(() => {
 useEffect(() => {
   localStorage.setItem("studyLogs", JSON.stringify(studyLogs));
 }, [studyLogs]);
+
+// クライアントコンポーネントがマウントされたときにAPIからタスクを取得
+useEffect(() => {
+  fetchTasks();
+}, []);
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-100">
