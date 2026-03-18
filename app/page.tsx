@@ -16,6 +16,9 @@ import TaskList from "../components/TaskList";
 import Chart from "../components/Chart";
 // 学習時間をタグごとに集計して表示するチャートコンポーネント
 
+import Dashboard from "../components/DashBoard";
+// 全体の学習時間や達成率を表示するダッシュボードコンポーネント
+
 export default function Home() {
   const [task, setTask] = useState("");
   // 入力中のタスクを管理
@@ -141,6 +144,25 @@ export default function Home() {
     ...(othersSum > 0 ? [{ name: "Others", value: othersSum }] : []),
   ];
 
+  // 全体の学習時間（全ログ合計）
+  const overallMinutes = studyLogs.reduce((sum, log) => {
+    return sum + log.minutes;
+  }, 0);
+
+  // 今日の日付（YYYY-MM-DD形式）
+  const today = new Date().toISOString().split("T")[0];
+
+  // 今日の学習時間
+  const todayMinutes = studyLogs
+    .filter((log) => log.date.startsWith(today))
+  .reduce((sum, log) => sum + log.minutes, 0);
+
+  // 完了しているタスク数
+  const completedTaskCount = tasks.filter((task) => task.done).length;
+
+  // 全タスク数
+  const totalTaskCount = tasks.length;
+
   // 初回ロード時にLocalStorageからタスクを取得
   useEffect(() => {
     const savedTasks = localStorage.getItem("tasks");
@@ -163,6 +185,14 @@ export default function Home() {
       <div className="bg-white p-8 rounded-xl shadow-md w-[400px]">
         {/* タイトル */}
         <h1 className="text-2xl font-bold mb-6 text-center">Study Tracker</h1>
+
+        {/* ダッシュボード */}
+        <Dashboard
+          overallMinutes={overallMinutes}
+          todayMinutes={todayMinutes}
+          completedTaskCount={completedTaskCount}
+          totalTaskCount={totalTaskCount}
+        />
 
         {/* タスク入力フォーム */}
         <TaskForm
