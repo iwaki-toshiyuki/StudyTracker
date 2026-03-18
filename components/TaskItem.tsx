@@ -120,7 +120,15 @@ export default function TaskItem({
             </span>
 
             <button
-              onClick={() => setIsEditing(true)}
+              onClick={() => {
+                // 編集モードに切り替え
+                setIsEditing(true)
+                // 編集用stateに現在の値をセット
+                setEditTask(task.text);
+                setEditTag(task.tag);
+                setMinutes(totalMinutes.toString());
+              }
+              }
               className="text-blue-500 ml-2"
             >
               編集

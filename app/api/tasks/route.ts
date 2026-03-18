@@ -9,6 +9,15 @@ export async function POST(req: Request) {
 
   const body = await req.json();
 
+  // タスクが空の場合はエラーを返す
+  if (!body.text || !body.text.trim()) {
+    return Response.json(
+    { error: "タスクが空です" },
+    { status: 400 }
+    );
+  }
+
+
     // 新しいタスクオブジェクトを作成
    const newTask = {
     id: Date.now(),   // 仮のID（実際はUUIDなどを使用することが多い）

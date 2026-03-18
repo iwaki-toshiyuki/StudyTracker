@@ -31,6 +31,9 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
 
   const addTask = async() => {
+    // 空チェック(タスクとタグ両方)
+    if (!task.trim() || !tag.trim()) return;
+
     // APIに送信
     await fetch("/api/tasks", {
       method: "POST",
