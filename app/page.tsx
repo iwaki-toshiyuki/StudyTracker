@@ -163,6 +163,9 @@ export default function Home() {
   // 全タスク数
   const totalTaskCount = tasks.length;
 
+
+  // -------------------- tasks --------------------
+
   // 初回ロード時にLocalStorageからタスクを取得
   useEffect(() => {
     const savedTasks = localStorage.getItem("tasks");
@@ -178,6 +181,21 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
+
+// -------------------- studyLogs --------------------
+
+// 初回ロード時にLocalStorageから学習ログを取得
+useEffect(() => {
+  const savedLogs = localStorage.getItem("studyLogs");
+  if (savedLogs) {
+    setStudyLogs(JSON.parse(savedLogs));
+  }
+}, []);
+
+// studyLogs変更時にLocalStorageへ保存
+useEffect(() => {
+  localStorage.setItem("studyLogs", JSON.stringify(studyLogs));
+}, [studyLogs]);
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-100">
