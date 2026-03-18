@@ -34,24 +34,18 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
     // APIに送信
     await fetch("/api/tasks", {
       method: "POST",
+      headers: {
+          "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         text: task,
         tag: tag,
       }),
     });
 
+    // サーバーから再取得
+    await fetchTasks();
 
-    // タスク追加関数
-    setTasks([
-      ...tasks,
-      {
-        id: Date.now(), // ←一意なIDを生成
-        text: task, // タスク内容
-        done: false, // 初期状態は未完了
-        tag: tag, // タグも保存
-        totalMinutes: 0, // 累計学習時間も初期化
-      },
-    ]);
 
     setTask(""); // 入力リセット
     setTag(""); // タグもリセット
@@ -219,10 +213,7 @@ useEffect(() => {
   localStorage.setItem("studyLogs", JSON.stringify(studyLogs));
 }, [studyLogs]);
 
-// クライアントコンポーネントがマウントされたときにAPIからタスクを取得
-useEffect(() => {
-  fetchTasks();
-}, []);
+
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-100">
