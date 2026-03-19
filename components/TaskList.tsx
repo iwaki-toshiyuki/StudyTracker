@@ -11,6 +11,7 @@ type Props = {
   addStudyLog: (taskIndex: number, minutes: number) => void; //学習ログ追加関数
   studyLogs: StudyLog[]; // 学習ログ一覧
   setStudyLogs: React.Dispatch<React.SetStateAction<StudyLog[]>>; // 学習ログ更新関数
+  fetchTasks: () => Promise<void>; // タスク再取得関数
 };
 
 export default function TaskList({
@@ -21,6 +22,7 @@ export default function TaskList({
   addStudyLog,
   studyLogs,
   setStudyLogs,
+  fetchTasks,
 }: Props) {
   return (
     // タスク一覧
@@ -55,6 +57,9 @@ export default function TaskList({
 
           setStudyLogs={setStudyLogs}
           // 学習ログ更新関数を子コンポーネントに渡す
+
+          fetchTasks={fetchTasks}
+          // タスク再取得関数を子コンポーネントに渡す
         />
       ))}
     </ul>

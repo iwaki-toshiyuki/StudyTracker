@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Task, StudyLog } from "./Types";
+import { supabase } from "../lib/supabase";
 
 // propsの型定義
 type Props = {
@@ -11,6 +12,7 @@ type Props = {
   addStudyLog: (index: number, minutes: number) => void; // 学習ログ追加関数
   studyLogs: StudyLog[]; // 学習ログ一覧
   setStudyLogs: React.Dispatch<React.SetStateAction<StudyLog[]>>; // 学習ログ更新関数
+  fetchTasks: () => Promise<void>; // タスク再取得関数
 };
 
 export default function TaskItem({
@@ -22,6 +24,7 @@ export default function TaskItem({
   addStudyLog,
   studyLogs,
   setStudyLogs,
+  fetchTasks,
 }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   // 編集モードかどうか
@@ -32,10 +35,19 @@ export default function TaskItem({
   const [editTag, setEditTag] = useState(task.tag);
   // 編集用state
 
-  const handleSave = () => {
+
+  const handleSave = async() => {
 
     // 差分計算(今回入力した時間 - これまでの合計時間)
-    const diff = Number(minutes) - totalMinutes;
+    const diff = Number(minutes) - taskTotalMinutes;
+
+     // 🔥 DB更新
+  await supabase
+    .from("tasks")
+    .update({
+      total_minutes: Number(minutes),
+    })
+    .eq("id", task.id);
 
 
     // 編集保存
@@ -56,13 +68,14 @@ export default function TaskItem({
 
     // 編集モード終了
     setIsEditing(false);
+
   };
 
   // 学習時間入力用state
   const [minutes, setMinutes] = useState("");
 
-  // タスクに紐づく学習ログを抽出
-  const totalMinutes = task.totalMinutes;
+  // タスクに紐づく学習ログを抽出(0分のログも含む)
+  const taskTotalMinutes = task.totalMinutes ?? 0;
 
   return (
     <li className="border p-3 rounded">
@@ -120,7 +133,7 @@ export default function TaskItem({
             {/* タスク表示 */}
 
             <span className={task.done ? "line-through text-gray-400" : ""}>
-              {task.text} ({task.tag})（合計: {totalMinutes}分）
+              {task.text} ({task.tag})（合計: {taskTotalMinutes}分）
             </span>
 
             <button
@@ -130,7 +143,7 @@ export default function TaskItem({
                 // 編集用stateに現在の値をセット
                 setEditTask(task.text);
                 setEditTag(task.tag);
-                setMinutes(totalMinutes.toString());
+                setMinutes(taskTotalMinutes.toString());
               }
               }
               className="text-blue-500 ml-2"
