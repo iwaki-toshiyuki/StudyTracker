@@ -25,6 +25,7 @@ export async function POST(req: Request) {
     tag: body.tag,  // タグ
     done: false,    // 完了状態
     totalMinutes: 0, // 学習時間（分）
+    date: new Date().toISOString(), // タスク作成日時
   };
 
   // タスクを配列に追加

@@ -10,6 +10,7 @@ type Props = {
   toggleTask: (index: number) => void; // タスク完了状態切り替え関数
   addStudyLog: (index: number, minutes: number) => void; // 学習ログ追加関数
   studyLogs: StudyLog[]; // 学習ログ一覧
+  setStudyLogs: React.Dispatch<React.SetStateAction<StudyLog[]>>; // 学習ログ更新関数
 };
 
 export default function TaskItem({
@@ -20,6 +21,7 @@ export default function TaskItem({
   toggleTask,
   addStudyLog,
   studyLogs,
+  setStudyLogs,
 }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   // 編集モードかどうか
@@ -31,17 +33,22 @@ export default function TaskItem({
   // 編集用state
 
   const handleSave = () => {
-    // 編集保存
 
+    // 差分計算(今回入力した時間 - これまでの合計時間)
+    const diff = Number(minutes) - totalMinutes;
+
+
+    // 編集保存
     updateTask(index, {
       ...task, // 元のtaskオブジェクトをコピー
       text: editTask, // textだけ更新
       tag: editTag, // tagも更新
+      totalMinutes: Number(minutes), // 合計時間も更新
     });
 
-    // 🔥 学習ログ追加（ここが重要）
-    if (minutes) {
-      addStudyLog(task.id, Number(minutes));
+    // 🔥 差分だけログ追加
+    if (diff > 0) {
+      addStudyLog(task.id, diff);
     }
 
     // 入力リセット
@@ -54,11 +61,8 @@ export default function TaskItem({
   // 学習時間入力用state
   const [minutes, setMinutes] = useState("");
 
-  // このタスクのログだけ取得
-  const filteredLogs = studyLogs.filter((log) => log.taskId === task.id);
-
-  // 合計時間を計算
-  const totalMinutes = filteredLogs.reduce((sum, log) => sum + log.minutes, 0);
+  // タスクに紐づく学習ログを抽出
+  const totalMinutes = task.totalMinutes;
 
   return (
     <li className="border p-3 rounded">
