@@ -19,6 +19,7 @@ export default function Dashboard({
       // タスクがない場合は0%とする
       : Math.round((completedTaskCount / totalTaskCount) * 100);
 
+
   return (
 
     // カードレイアウト（2列）

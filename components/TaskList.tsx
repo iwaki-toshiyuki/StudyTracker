@@ -10,6 +10,7 @@ type Props = {
   toggleTask: (index: number) => void; // タスク完了状態切り替え関数
   addStudyLog: (taskIndex: number, minutes: number) => void; //学習ログ追加関数
   studyLogs: StudyLog[]; // 学習ログ一覧
+  setStudyLogs: React.Dispatch<React.SetStateAction<StudyLog[]>>; // 学習ログ更新関数
 };
 
 export default function TaskList({
@@ -19,6 +20,7 @@ export default function TaskList({
   toggleTask,
   addStudyLog,
   studyLogs,
+  setStudyLogs,
 }: Props) {
   return (
     // タスク一覧
@@ -50,6 +52,9 @@ export default function TaskList({
 
           studyLogs={studyLogs}
           // 学習ログ一覧を子コンポーネントに渡す
+
+          setStudyLogs={setStudyLogs}
+          // 学習ログ更新関数を子コンポーネントに渡す
         />
       ))}
     </ul>

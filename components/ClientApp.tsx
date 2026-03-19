@@ -156,18 +156,27 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
     ...(othersSum > 0 ? [{ name: "Others", value: othersSum }] : []),
   ];
 
-  // 全体の学習時間（全ログ合計）
-  const overallMinutes = studyLogs.reduce((sum, log) => {
-    return sum + log.minutes;
-  }, 0);
 
   // 今日の日付（YYYY-MM-DD形式）
   const today = new Date().toISOString().split("T")[0];
 
-  // 今日の学習時間
-  const todayMinutes = studyLogs
-    .filter((log) => log.date.startsWith(today))
+  // 今日のタスクだけ抽出
+  const todayTasks = tasks.filter((task) =>
+  task.date.startsWith(today)
+);
+
+  // 今日の学習時間(今日の日付と同じログの合計)
+  const todayMinutes = todayTasks.reduce((sum, task) => {
+    return sum + task.totalMinutes;
+  }, 0);
+
+  // 今日以外のログだけ合計
+  const pastMinutes = studyLogs
+  .filter((log) => !log.date.startsWith(today))
   .reduce((sum, log) => sum + log.minutes, 0);
+
+  // 全体の学習時間（全ログ合計）
+  const overallMinutes = todayMinutes + pastMinutes;
 
   // 完了しているタスク数
   const completedTaskCount = tasks.filter((task) => task.done).length;
@@ -251,6 +260,7 @@ useEffect(() => {
           toggleTask={toggleTask}
           addStudyLog={addStudyLog}
           studyLogs={studyLogs}
+          setStudyLogs={setStudyLogs} 
         />
 
         <Chart data={chartData} />
