@@ -118,6 +118,20 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
     // 配列に追加
   };
 
+  // タスクに紐づく学習ログを抽出(0分のログも含む)
+  const fetchStudyLogs = async () => {
+  const { data, error } = await supabase
+    .from("study_logs")
+    .select("*");
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  setStudyLogs(data || []);
+};
+
   // タグ入力用
   const [tag, setTag] = useState("");
 
@@ -175,23 +189,16 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   // 今日の日付（YYYY-MM-DD形式）
   const today = new Date().toISOString().split("T")[0];
 
-  // 今日のタスクだけ抽出
-  const todayTasks = tasks.filter((task) =>
-  task.date.startsWith(today)
-);
+ // 今日のログだけ抽出して合計
+  const todayMinutes = studyLogs
+  .filter((log) => log.date.startsWith(today)) // 今日のログだけ
+  .reduce((sum, log) => sum + log.minutes, 0); // 分を合計
 
-  // 今日の学習時間(今日の日付と同じログの合計)
-  const todayMinutes = todayTasks.reduce((sum, task) => {
-    return sum + (task.totalMinutes ?? 0);
-  }, 0);
-
-  // 今日以外のログだけ合計
-  const pastMinutes = studyLogs
-  .filter((log) => !log.date.startsWith(today))
-  .reduce((sum, log) => sum + log.minutes, 0);
-
-  // 全体の学習時間（全ログ合計）
-  const overallMinutes = todayMinutes + pastMinutes;
+  // 総学習時間（全ログ合計）
+  const overallMinutes = studyLogs.reduce(
+    (sum, log) => sum + log.minutes,
+    0
+  );
 
   // 完了しているタスク数
   const completedTaskCount = tasks.filter((task) => task.done).length;
@@ -256,9 +263,10 @@ useEffect(() => {
   localStorage.setItem("studyLogs", JSON.stringify(studyLogs));
 }, [studyLogs]);
 
-// 初回ロード時にAPIからタスクを取得
+// 初回ロード時にAPIからタスクと学習ログを取得
 useEffect(() => {
   fetchTasks();
+  fetchStudyLogs();
 }, []);
 
 
@@ -298,6 +306,7 @@ useEffect(() => {
           studyLogs={studyLogs}
           setStudyLogs={setStudyLogs}
           fetchTasks={fetchTasks}
+          fetchStudyLogs={fetchStudyLogs}
         />
 
         <Chart data={chartData} />

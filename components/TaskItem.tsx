@@ -13,6 +13,7 @@ type Props = {
   studyLogs: StudyLog[]; // 学習ログ一覧
   setStudyLogs: React.Dispatch<React.SetStateAction<StudyLog[]>>; // 学習ログ更新関数
   fetchTasks: () => Promise<void>; // タスク再取得関数
+  fetchStudyLogs: () => Promise<void>; // 学習ログ再取得関数
 };
 
 export default function TaskItem({
@@ -25,6 +26,7 @@ export default function TaskItem({
   studyLogs,
   setStudyLogs,
   fetchTasks,
+  fetchStudyLogs,
 }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   // 編集モードかどうか
@@ -38,36 +40,47 @@ export default function TaskItem({
 
   const handleSave = async() => {
 
-    // 差分計算(今回入力した時間 - これまでの合計時間)
-    const diff = Number(minutes) - taskTotalMinutes;
+    // 学習時間を数値に変換
+    const newMinutes = Number(minutes);
 
      // 🔥 DB更新
-  await supabase
-    .from("tasks")
-    .update({
-      total_minutes: Number(minutes),
-    })
-    .eq("id", task.id);
+    await supabase
+      .from("tasks")
+      .update({
+        total_minutes: newMinutes,
+      })
+      .eq("id", task.id);
 
+
+    // 🔥 既存ログ削除
+    await supabase
+      .from("study_logs")
+      .delete()
+      .eq("task_id", task.id);
+
+    // 🔥 新しいログを1件だけ入れる
+    if (newMinutes > 0) {
+      await addStudyLog(task.id, newMinutes);
+  }
 
     // 編集保存
     updateTask(index, {
       ...task, // 元のtaskオブジェクトをコピー
       text: editTask, // textだけ更新
       tag: editTag, // tagも更新
-      totalMinutes: Number(minutes), // 合計時間も更新
+      totalMinutes: newMinutes, // 合計時間も更新
     });
 
-    // 🔥 差分だけログ追加
-    if (diff > 0) {
-      addStudyLog(task.id, diff);
-    }
+    // タスクとログを再取得して最新状態に
+    await fetchTasks();
+    await fetchStudyLogs();
 
     // 入力リセット
     setMinutes("");
 
     // 編集モード終了
     setIsEditing(false);
+
 
   };
 
