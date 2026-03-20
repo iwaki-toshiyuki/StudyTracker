@@ -21,6 +21,7 @@ export default function TaskItem({
   task,
   deleteTask,
   updateTask,
+  toggleTask,
   addStudyLog,
   fetchTasks,
   fetchStudyLogs,
@@ -121,6 +122,13 @@ export default function TaskItem({
                 options={uniqueTags}
               />
             </div>
+
+             {/* タスク完了チェック */}
+            <input
+              type="checkbox"
+              checked={task.done}
+              onChange={() => toggleTask(task.id)}
+            />
 
             <button onClick={handleSave} className="text-green-500 ml-2">
               保存
