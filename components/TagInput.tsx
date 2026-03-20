@@ -29,7 +29,7 @@ export default function TagInput({
           setIsOpen(true); // 入力したら候補を表示
         }}
         placeholder={placeholder}
-        className="border px-2 py-1 w-full"
+        className="flex-1 px-2 py-2"
         onFocus={() => setIsOpen(true)} // フォーカスで開く
         onBlur={() => setTimeout(() => setIsOpen(false), 100)} 
         // blurですぐ閉じるとクリックできないので少し遅らせる
