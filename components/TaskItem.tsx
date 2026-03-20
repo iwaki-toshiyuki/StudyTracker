@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Task, StudyLog } from './Types';
 import { supabase } from "../lib/supabase";
+import TagInput from "./TagInput";
 
 // propsの型定義
 type Props = {
@@ -13,16 +14,17 @@ type Props = {
   setStudyLogs: React.Dispatch<React.SetStateAction<StudyLog[]>>; // 学習ログ更新関数
   fetchTasks: () => Promise<void>; // タスク再取得関数
   fetchStudyLogs: () => Promise<void>; // 学習ログ再取得関数
+  uniqueTags: string[]; // 重複なしタグ一覧
 };
 
 export default function TaskItem({
   task,
   deleteTask,
   updateTask,
-  toggleTask,
   addStudyLog,
   fetchTasks,
   fetchStudyLogs,
+  uniqueTags,
 }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   // 編集モードかどうか
@@ -102,13 +104,6 @@ export default function TaskItem({
               className="border px-2 py-1"
             />
 
-            {/* 編集時タグ入力 */}
-            <input
-              value={editTag}
-              onChange={(e) => setEditTag(e.target.value)}
-              className="border px-2 py-1"
-            />
-
             {/* 学習時間入力 */}
             <input
               type="number"
@@ -118,11 +113,11 @@ export default function TaskItem({
               className="border px-2 py-1 w-20"
             />
 
-            {/* タスク完了チェック */}
-            <input
-              type="checkbox"
-              checked={task.done}
-              onChange={() => toggleTask(task.id)}
+            {/* タグ候補ドロップダウン */}
+            <TagInput
+              value={editTag}
+              onChange={setEditTag}
+              options={uniqueTags}
             />
 
             <button onClick={handleSave} className="text-green-500 ml-2">

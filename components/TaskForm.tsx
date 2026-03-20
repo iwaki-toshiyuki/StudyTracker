@@ -1,4 +1,5 @@
 import { useState } from "react";
+import TagInput from "./TagInput";
 
 // propsの型定義
 type Props = {
@@ -12,9 +13,6 @@ type Props = {
 
 
 export default function TaskForm({ task, setTask, addTask, tag, setTag, uniqueTags }: Props) {
-
-  // ドロップダウン開閉状態
-  const [isOpen, setIsOpen] = useState(false);
 
   return (
 
@@ -34,50 +32,16 @@ export default function TaskForm({ task, setTask, addTask, tag, setTag, uniqueTa
 
         placeholder="タスクを入力"
 
-        className="flex-1 px-3 py-2 outline-none"
+        className="flex-1 px-2 py-2 outline-none"
       />
 
-       {/* ▼ タグ選択 */}
-      <div className="relative w-40 border-l">
-
-
-          {/* 入力フィールド */}
-          <input
-            type="text"
-            value={tag}
-            onChange={(e) => {
-              setTag(e.target.value);
-              setIsOpen(true); // 入力したら必ず開く
-            }}
-            placeholder="タグを入力"
-            className="w-full px-2 py-2 outline-none"
-            onFocus={() => setIsOpen(true)} // フォーカスで開く
-            onBlur={() => setTimeout(() => setIsOpen(false), 100)} // 少し遅らせて閉じる
-          />
-
-          {/* ▼ ドロップダウン */}
-          {isOpen && uniqueTags.length > 0 && (
-            <div className="absolute top-full left-0 w-full bg-white border rounded shadow-md mt-1 z-10">
-
-              {uniqueTags
-                .filter((t) =>
-                t.toLowerCase().includes(tag.toLowerCase())
-                ).map((t: string) => (
-                <div
-                  key={t}
-                  onMouseDown={() => {
-                  // ⚠️ onClickだとblurで消える
-                  setTag(t);
-                  setIsOpen(false);
-                }}
-                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                >
-                  {t}
-                </div>
-              ))}
-
-          </div>
-        )}
+      {/* タグ入力フォーム */}
+      <div className="w-40 border-l">
+        <TagInput
+          value={tag}
+          onChange={setTag}
+          options={uniqueTags}
+        />
       </div>
 
     </div>

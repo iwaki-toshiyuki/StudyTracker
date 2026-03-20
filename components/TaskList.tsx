@@ -13,6 +13,7 @@ type Props = {
   setStudyLogs: React.Dispatch<React.SetStateAction<StudyLog[]>>; // 学習ログ更新関数
   fetchTasks: () => Promise<void>; // タスク再取得関数
   fetchStudyLogs: () => Promise<void>; // 学習ログ再取得関数
+  uniqueTags: string[]; // 重複なしタグ一覧
 };
 
 export default function TaskList({
@@ -25,7 +26,7 @@ export default function TaskList({
   setStudyLogs,
   fetchTasks,
   fetchStudyLogs,
-
+  uniqueTags,
 }: Props) {
   return (
     // タスク一覧
@@ -63,6 +64,9 @@ export default function TaskList({
 
           fetchStudyLogs={fetchStudyLogs}
           // 学習ログ再取得関数を子コンポーネントに渡す
+
+          uniqueTags={uniqueTags}
+          // 重複なしタグ一覧を子コンポーネントに渡す
         />
       ))}
     </ul>

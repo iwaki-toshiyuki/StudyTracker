@@ -280,6 +280,7 @@ useEffect(() => {
           setStudyLogs={setStudyLogs}
           fetchTasks={fetchTasks}
           fetchStudyLogs={fetchStudyLogs}
+          uniqueTags={uniqueTags}
         />
 
         <Chart data={chartData} />
