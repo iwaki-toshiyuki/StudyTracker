@@ -141,8 +141,8 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   // タグごとの学習時間集計
   const tagSummary = studyLogs.reduce(
     (acc, log) => {
-      // taskIdからタスクを取得
-      const task = tasks.find((t) => t.id === log.taskId);
+      // task_idからタスクを取得
+      const task = tasks.find((t) => t.id === log.task_id);
 
       // タスクが見つからない場合はスキップ
       if (!task) return acc;
