@@ -1,27 +1,30 @@
 import { useState } from "react";
-import { Task, StudyLog } from "./Types";
+import { Task, StudyLog } from './Types';
+import { supabase } from "../lib/supabase";
+import TagInput from "./TagInput";
 
 // propsの型定義
 type Props = {
   task: Task; // タスク内容
-  index: number; // タスクの位置
-  deleteTask: (index: number) => void; // 削除関数
-  updateTask: (index: number, newTask: Task) => void; // 編集保存関数
-  toggleTask: (index: number) => void; // タスク完了状態切り替え関数
-  addStudyLog: (index: number, minutes: number) => void; // 学習ログ追加関数
+  deleteTask: (id: number) => void; // 削除関数
+  updateTask: (id: number, newTask: Task) => void; // 編集保存関数
+  toggleTask: (id: number) => void; // タスク完了状態切り替え関数
+  addStudyLog: (taskId: number, minutes: number) => void; // 学習ログ追加関数
   studyLogs: StudyLog[]; // 学習ログ一覧
   setStudyLogs: React.Dispatch<React.SetStateAction<StudyLog[]>>; // 学習ログ更新関数
+  fetchTasks: () => Promise<void>; // タスク再取得関数
+  fetchStudyLogs: () => Promise<void>; // 学習ログ再取得関数
+  uniqueTags: string[]; // 重複なしタグ一覧
 };
 
 export default function TaskItem({
   task,
-  index,
   deleteTask,
   updateTask,
-  toggleTask,
   addStudyLog,
-  studyLogs,
-  setStudyLogs,
+  fetchTasks,
+  fetchStudyLogs,
+  uniqueTags,
 }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   // 編集モードかどうか
@@ -32,37 +35,61 @@ export default function TaskItem({
   const [editTag, setEditTag] = useState(task.tag);
   // 編集用state
 
-  const handleSave = () => {
 
-    // 差分計算(今回入力した時間 - これまでの合計時間)
-    const diff = Number(minutes) - totalMinutes;
+  const handleSave = async() => {
 
+    // 学習時間を数値に変換
+    const newMinutes = Number(minutes);
+
+     // 🔥 DB更新
+    await supabase
+      .from("tasks")
+      .update({
+        total_minutes: newMinutes, // 合計時間を更新
+        done: task.done, // 完了状態も更新
+        text: editTask, // タスク内容も更新
+        tag: editTag, // タグも更新
+      })
+      .eq("id", task.id);
+
+
+    // 🔥 既存ログ削除
+    await supabase
+      .from("study_logs")
+      .delete()
+      .eq("task_id", task.id);
+
+    // 🔥 新しいログを1件だけ入れる
+    if (newMinutes > 0) {
+      await addStudyLog(task.id, newMinutes);
+  }
 
     // 編集保存
-    updateTask(index, {
+    updateTask(task.id, {
       ...task, // 元のtaskオブジェクトをコピー
       text: editTask, // textだけ更新
       tag: editTag, // tagも更新
-      totalMinutes: Number(minutes), // 合計時間も更新
+      totalMinutes: newMinutes, // 合計時間も更新
     });
 
-    // 🔥 差分だけログ追加
-    if (diff > 0) {
-      addStudyLog(task.id, diff);
-    }
+    // タスクとログを再取得して最新状態に
+    await fetchTasks();
+    await fetchStudyLogs();
 
     // 入力リセット
     setMinutes("");
 
     // 編集モード終了
     setIsEditing(false);
+
+
   };
 
   // 学習時間入力用state
   const [minutes, setMinutes] = useState("");
 
-  // タスクに紐づく学習ログを抽出
-  const totalMinutes = task.totalMinutes;
+  // タスクに紐づく学習ログを抽出(0分のログも含む)
+  const taskTotalMinutes = task.totalMinutes ?? 0;
 
   return (
     <li className="border p-3 rounded">
@@ -77,13 +104,6 @@ export default function TaskItem({
               className="border px-2 py-1"
             />
 
-            {/* 編集時タグ入力 */}
-            <input
-              value={editTag}
-              onChange={(e) => setEditTag(e.target.value)}
-              className="border px-2 py-1"
-            />
-
             {/* 学習時間入力 */}
             <input
               type="number"
@@ -93,12 +113,14 @@ export default function TaskItem({
               className="border px-2 py-1 w-20"
             />
 
-            {/* タスク完了チェック */}
-            <input
-              type="checkbox"
-              checked={task.done}
-              onChange={() => toggleTask(index)}
-            />
+            {/* タグ候補ドロップダウン */}
+            <div className="border rounded">
+              <TagInput
+                value={editTag}
+                onChange={setEditTag}
+                options={uniqueTags}
+              />
+            </div>
 
             <button onClick={handleSave} className="text-green-500 ml-2">
               保存
@@ -107,7 +129,7 @@ export default function TaskItem({
             {/* 削除ボタン */}
 
             <button
-              onClick={() => deleteTask(index)}
+              onClick={() => deleteTask(task.id)}
               className="text-red-500 ml-2"
             >
               削除
@@ -120,7 +142,7 @@ export default function TaskItem({
             {/* タスク表示 */}
 
             <span className={task.done ? "line-through text-gray-400" : ""}>
-              {task.text} ({task.tag})（合計: {totalMinutes}分）
+              {task.text} ({task.tag})（合計: {taskTotalMinutes}分）
             </span>
 
             <button
@@ -130,7 +152,7 @@ export default function TaskItem({
                 // 編集用stateに現在の値をセット
                 setEditTask(task.text);
                 setEditTag(task.tag);
-                setMinutes(totalMinutes.toString());
+                setMinutes(taskTotalMinutes.toString());
               }
               }
               className="text-blue-500 ml-2"
@@ -141,7 +163,7 @@ export default function TaskItem({
             {/* 削除ボタン */}
 
             <button
-              onClick={() => deleteTask(index)}
+              onClick={() => deleteTask(task.id)}
               className="text-red-500 ml-2"
             >
               削除

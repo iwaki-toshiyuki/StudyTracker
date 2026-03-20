@@ -25,6 +25,8 @@ import Chart from "../components/Chart";
 import Dashboard from "../components/DashBoard";
 // 全体の学習時間や達成率を表示するダッシュボードコンポーネント
 
+import { supabase } from "../lib/supabase";
+
 export default function ClientApp({ initialTasks, initialLogs }: Props) {
   const [task, setTask] = useState("");
   // 入力中のタスクを管理
@@ -34,17 +36,19 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
     // 空チェック(タスクとタグ両方)
     if (!task.trim() || !tag.trim()) return;
 
-    // APIに送信
-    await fetch("/api/tasks", {
-      method: "POST",
-      headers: {
-          "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        text: task,
-        tag: tag,
-      }),
-    });
+  // DBにINSERT
+  const { error } = await supabase.from("tasks").insert({
+    text: task,
+    tag: tag,
+    done: false,
+    total_minutes: 0,
+    date: new Date().toISOString(),
+  });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
 
     // サーバーから再取得
     await fetchTasks();
@@ -54,54 +58,85 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
     setTag(""); // タグもリセット
   };
 
-  const deleteTask = (index: number) => {
-    // タスク削除関数
+  const deleteTask = async(id: number) => {
+    const { error } = await supabase
+    .from("tasks")
+    .delete()
+    .eq("id", id);
 
-    const newTasks = tasks.filter((_, i) => i !== index);
-    // 削除対象以外のタスクを新しい配列にする
+  if (error) {
+    console.error(error);
+    return;
+  }
 
-    setTasks(newTasks);
-    // state更新
+  // 再取得
+  await fetchTasks();
   };
 
-  const updateTask = (index: number, newTask: Task) => {
+  const updateTask = (id: number, newTask: Task) => {
     // 編集保存
 
-    const newTasks = [...tasks];
-    // タスク配列をコピー
+    setTasks((prev) =>
+    // タスク配列をループして、対象のタスクだけ内容を更新する
 
-    newTasks[index] = newTask;
-    // 編集されたタスク内容を更新
-
-    setTasks(newTasks);
-    // state更新
+    prev.map((task) =>
+      task.id === id ? newTask : task
+    // idが一致するタスクだけnewTaskに置き換える
+    )
+  );
   };
 
   // タスクの完了状態を切り替える関数
-  const toggleTask = (index: number) => {
-    const newTasks = [...tasks];
+  const toggleTask = (id: number) => {
+    // 完了状態切り替え
+    setTasks((prev) =>
 
-    // doneを反転
-    newTasks[index].done = !newTasks[index].done;
-
-    setTasks(newTasks);
+    // タスク配列をループして、対象のタスクだけdoneを反転させる
+    prev.map((task) =>
+      task.id === id
+        ? { ...task, done: !task.done }
+        : task
+    )
+  );
   };
+
+  console.log(tasks);
 
   // 学習ログ一覧
   // 全ての学習ログを管理
   const [studyLogs, setStudyLogs] = useState<StudyLog[]>(initialLogs);
 
   // 学習ログ追加関数
-  const addStudyLog = (taskId: number, minutes: number) => {
-    const newLog = {
-      taskId: taskId, // ←タスクのIDを保存
-      minutes: minutes, // 学習時間
-      date: new Date().toISOString(), // 現在日時
-    };
+  const addStudyLog = async (taskId: number, minutes: number) => {
 
-    setStudyLogs((prev) => [...prev, newLog]);
+    const { error } = await supabase.from("study_logs").insert({
+    task_id: taskId,
+    minutes: minutes,
+    date: new Date().toISOString(),
+  });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+    setStudyLogs((prev) => [...prev]);
     // 配列に追加
   };
+
+  // タスクに紐づく学習ログを抽出(0分のログも含む)
+  const fetchStudyLogs = async () => {
+  const { data, error } = await supabase
+    .from("study_logs")
+    .select("*");
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  setStudyLogs(data || []);
+};
 
   // タグ入力用
   const [tag, setTag] = useState("");
@@ -112,8 +147,8 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   // タグごとの学習時間集計
   const tagSummary = studyLogs.reduce(
     (acc, log) => {
-      // taskIdからタスクを取得
-      const task = tasks.find((t) => t.id === log.taskId);
+      // task_idからタスクを取得
+      const task = tasks.find((t) => t.id === log.task_id);
 
       // タスクが見つからない場合はスキップ
       if (!task) return acc;
@@ -160,23 +195,16 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   // 今日の日付（YYYY-MM-DD形式）
   const today = new Date().toISOString().split("T")[0];
 
-  // 今日のタスクだけ抽出
-  const todayTasks = tasks.filter((task) =>
-  task.date.startsWith(today)
-);
+ // 今日のログだけ抽出して合計
+  const todayMinutes = studyLogs
+  .filter((log) => log.date.startsWith(today)) // 今日のログだけ
+  .reduce((sum, log) => sum + log.minutes, 0); // 分を合計
 
-  // 今日の学習時間(今日の日付と同じログの合計)
-  const todayMinutes = todayTasks.reduce((sum, task) => {
-    return sum + task.totalMinutes;
-  }, 0);
-
-  // 今日以外のログだけ合計
-  const pastMinutes = studyLogs
-  .filter((log) => !log.date.startsWith(today))
-  .reduce((sum, log) => sum + log.minutes, 0);
-
-  // 全体の学習時間（全ログ合計）
-  const overallMinutes = todayMinutes + pastMinutes;
+  // 総学習時間（全ログ合計）
+  const overallMinutes = studyLogs.reduce(
+    (sum, log) => sum + log.minutes,
+    0
+  );
 
   // 完了しているタスク数
   const completedTaskCount = tasks.filter((task) => task.done).length;
@@ -186,44 +214,33 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
 
   // タスクをAPIから再取得する関数
   const fetchTasks = async () => {
-  const res = await fetch("/api/tasks");
-  const data = await res.json();
-  setTasks(data);
+  // DBから取得
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+   // DBのカラム名に合わせて変換
+  const formatted = (data || []).map((task) => ({
+    ...task,
+    totalMinutes: task.total_minutes ?? 0, // ← 変換
+  }));
+
+  // state更新
+  setTasks(formatted);
 };
 
 
-  // -------------------- tasks --------------------
-
-  // 初回ロード時にLocalStorageからタスクを取得
-  useEffect(() => {
-    const savedTasks = localStorage.getItem("tasks");
-    // LocalStorageからtasksを取得
-
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
-      // JSON文字列を配列に戻してstateにセット
-    }
-  }, []);
-
-  // tasks変更時にLocalStorageへ保存
-  useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  }, [tasks]);
-
-// -------------------- studyLogs --------------------
-
-// 初回ロード時にLocalStorageから学習ログを取得
+// 初回ロード時にAPIからタスクと学習ログを取得
 useEffect(() => {
-  const savedLogs = localStorage.getItem("studyLogs");
-  if (savedLogs) {
-    setStudyLogs(JSON.parse(savedLogs));
-  }
+  fetchTasks();
+  fetchStudyLogs();
 }, []);
-
-// studyLogs変更時にLocalStorageへ保存
-useEffect(() => {
-  localStorage.setItem("studyLogs", JSON.stringify(studyLogs));
-}, [studyLogs]);
 
 
 
@@ -260,7 +277,10 @@ useEffect(() => {
           toggleTask={toggleTask}
           addStudyLog={addStudyLog}
           studyLogs={studyLogs}
-          setStudyLogs={setStudyLogs} 
+          setStudyLogs={setStudyLogs}
+          fetchTasks={fetchTasks}
+          fetchStudyLogs={fetchStudyLogs}
+          uniqueTags={uniqueTags}
         />
 
         <Chart data={chartData} />
