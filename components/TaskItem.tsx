@@ -1,15 +1,14 @@
 import { useState } from "react";
-import { Task, StudyLog } from "./Types";
+import { Task, StudyLog } from './Types';
 import { supabase } from "../lib/supabase";
 
 // propsの型定義
 type Props = {
   task: Task; // タスク内容
-  index: number; // タスクの位置
-  deleteTask: (index: number) => void; // 削除関数
-  updateTask: (index: number, newTask: Task) => void; // 編集保存関数
-  toggleTask: (index: number) => void; // タスク完了状態切り替え関数
-  addStudyLog: (index: number, minutes: number) => void; // 学習ログ追加関数
+  deleteTask: (id: number) => void; // 削除関数
+  updateTask: (id: number, newTask: Task) => void; // 編集保存関数
+  toggleTask: (id: number) => void; // タスク完了状態切り替え関数
+  addStudyLog: (taskId: number, minutes: number) => void; // 学習ログ追加関数
   studyLogs: StudyLog[]; // 学習ログ一覧
   setStudyLogs: React.Dispatch<React.SetStateAction<StudyLog[]>>; // 学習ログ更新関数
   fetchTasks: () => Promise<void>; // タスク再取得関数
@@ -18,13 +17,10 @@ type Props = {
 
 export default function TaskItem({
   task,
-  index,
   deleteTask,
   updateTask,
   toggleTask,
   addStudyLog,
-  studyLogs,
-  setStudyLogs,
   fetchTasks,
   fetchStudyLogs,
 }: Props) {
@@ -47,7 +43,10 @@ export default function TaskItem({
     await supabase
       .from("tasks")
       .update({
-        total_minutes: newMinutes,
+        total_minutes: newMinutes, // 合計時間を更新
+        done: task.done, // 完了状態も更新
+        text: editTask, // タスク内容も更新
+        tag: editTag, // タグも更新
       })
       .eq("id", task.id);
 
@@ -64,7 +63,7 @@ export default function TaskItem({
   }
 
     // 編集保存
-    updateTask(index, {
+    updateTask(task.id, {
       ...task, // 元のtaskオブジェクトをコピー
       text: editTask, // textだけ更新
       tag: editTag, // tagも更新
@@ -123,7 +122,7 @@ export default function TaskItem({
             <input
               type="checkbox"
               checked={task.done}
-              onChange={() => toggleTask(index)}
+              onChange={() => toggleTask(task.id)}
             />
 
             <button onClick={handleSave} className="text-green-500 ml-2">
@@ -133,7 +132,7 @@ export default function TaskItem({
             {/* 削除ボタン */}
 
             <button
-              onClick={() => deleteTask(index)}
+              onClick={() => deleteTask(task.id)}
               className="text-red-500 ml-2"
             >
               削除
@@ -167,7 +166,7 @@ export default function TaskItem({
             {/* 削除ボタン */}
 
             <button
-              onClick={() => deleteTask(index)}
+              onClick={() => deleteTask(task.id)}
               className="text-red-500 ml-2"
             >
               削除

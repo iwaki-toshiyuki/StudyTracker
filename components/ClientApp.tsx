@@ -73,28 +73,34 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   await fetchTasks();
   };
 
-  const updateTask = (index: number, newTask: Task) => {
+  const updateTask = (id: number, newTask: Task) => {
     // 編集保存
 
-    const newTasks = [...tasks];
-    // タスク配列をコピー
+    setTasks((prev) =>
+    // タスク配列をループして、対象のタスクだけ内容を更新する
 
-    newTasks[index] = newTask;
-    // 編集されたタスク内容を更新
-
-    setTasks(newTasks);
-    // state更新
+    prev.map((task) =>
+      task.id === id ? newTask : task
+    // idが一致するタスクだけnewTaskに置き換える
+    )
+  );
   };
 
   // タスクの完了状態を切り替える関数
-  const toggleTask = (index: number) => {
-    const newTasks = [...tasks];
+  const toggleTask = (id: number) => {
+    // 完了状態切り替え
+    setTasks((prev) =>
 
-    // doneを反転
-    newTasks[index].done = !newTasks[index].done;
-
-    setTasks(newTasks);
+    // タスク配列をループして、対象のタスクだけdoneを反転させる
+    prev.map((task) =>
+      task.id === id
+        ? { ...task, done: !task.done }
+        : task
+    )
+  );
   };
+
+  console.log(tasks);
 
   // 学習ログ一覧
   // 全ての学習ログを管理
@@ -229,39 +235,6 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   setTasks(formatted);
 };
 
-
-  // -------------------- tasks --------------------
-
-  // 初回ロード時にLocalStorageからタスクを取得
-  useEffect(() => {
-    const savedTasks = localStorage.getItem("tasks");
-    // LocalStorageからtasksを取得
-
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
-      // JSON文字列を配列に戻してstateにセット
-    }
-  }, []);
-
-  // tasks変更時にLocalStorageへ保存
-  useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  }, [tasks]);
-
-// -------------------- studyLogs --------------------
-
-// 初回ロード時にLocalStorageから学習ログを取得
-useEffect(() => {
-  const savedLogs = localStorage.getItem("studyLogs");
-  if (savedLogs) {
-    setStudyLogs(JSON.parse(savedLogs));
-  }
-}, []);
-
-// studyLogs変更時にLocalStorageへ保存
-useEffect(() => {
-  localStorage.setItem("studyLogs", JSON.stringify(studyLogs));
-}, [studyLogs]);
 
 // 初回ロード時にAPIからタスクと学習ログを取得
 useEffect(() => {
