@@ -114,11 +114,13 @@ export default function TaskItem({
             />
 
             {/* タグ候補ドロップダウン */}
-            <TagInput
-              value={editTag}
-              onChange={setEditTag}
-              options={uniqueTags}
-            />
+            <div className="border rounded">
+              <TagInput
+                value={editTag}
+                onChange={setEditTag}
+                options={uniqueTags}
+              />
+            </div>
 
             <button onClick={handleSave} className="text-green-500 ml-2">
               保存
