@@ -1,6 +1,9 @@
 // Prisma Clientを初期化
 import { prisma } from "./prisma";
 
+import { StudyLog } from "@prisma/client";
+
+
 
 // タスク取得
 export async function getTasksServer() {
@@ -23,7 +26,7 @@ export async function getStudyLogsServer() {
     orderBy: { id: "desc" },
   });
 
-  return logs.map((log) => ({
+  return logs.map((log: StudyLog) => ({
     ...log,
     id: Number(log.id),
     taskId: Number(log.taskId),
