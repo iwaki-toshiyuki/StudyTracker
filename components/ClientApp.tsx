@@ -158,6 +158,8 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
     ...(othersSum > 0 ? [{ name: "Others", value: othersSum }] : []),
   ];
 
+  console.log("studyLogs:", studyLogs);
+
   // 今日の日付（YYYY-MM-DD形式）
   const today = new Date().toISOString().split("T")[0];
 
