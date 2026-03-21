@@ -1,73 +1,110 @@
 import { prisma } from "@/lib/prisma";
+import { supabase } from "@/lib/supabase";
 
-
+const isLocal = process.env.NEXT_PUBLIC_DB_MODE === "local";
 
 export async function GET() {
-    // タスクを全件取得して、作成日時の降順で並べる
+  if (isLocal) {
     const tasks = await prisma.task.findMany({
-    orderBy: { id: "desc" },
-  });
+      orderBy: { id: "desc" },
+    });
 
-   // 🔥 BigInt → number 変換
-  const formatted = tasks.map((task: any) => ({
+    const formatted = tasks.map((task: any) => ({
       ...task,
-    tag: task.tag ?? "", // tagがnullの場合は空文字にする
-    id: Number(task.id), // IDを数値に変換
-    date: task.date.toISOString(), // 日付をISO文字列に変換
-    createdAt: task.createdAt.toISOString(), // 作成日時もISO文字列に変換
-  }));
+      tag: task.tag ?? "",
+      id: Number(task.id),
+      date: task.date.toISOString(),
+      createdAt: task.createdAt.toISOString(),
+    }));
 
-  return Response.json(formatted);
+    return Response.json(formatted);
+  }
+
+  // 🔥 本番（Supabase）
+  const { data, error } = await supabase.from("tasks").select("*");
+
+  if (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+
+  return Response.json(data);
 }
 
-
+// POST
 export async function POST(req: Request) {
-
-  // リクエストボディをJSONとして解析
   const body = await req.json();
 
-  // タスクを新規作成
-  const task = await prisma.task.create({
-    data: {
-      text: body.text,
-      tag: body.tag,
-      date: new Date(),
-    },
+  if (isLocal) {
+    const task = await prisma.task.create({
+      data: {
+        text: body.text,
+        tag: body.tag,
+        date: new Date(),
+      },
+    });
+
+    return Response.json({
+      ...task,
+      tag: task.tag ?? "",
+      id: Number(task.id),
+      date: task.date.toISOString(),
+      createdAt: task.createdAt.toISOString(),
+    });
+  }
+
+  // 🔥 本番
+  const { data, error } = await supabase.from("tasks").insert({
+    text: body.text,
+    tag: body.tag,
+    done: false,
+    total_minutes: 0,
+    date: new Date().toISOString(),
   });
 
-  // 🔥 BigInt → number 変換
-  const formatted ={
-      ...task,
-    tag: task.tag ?? "", // tagがnullの場合は空文字にする
-    id: Number(task.id), // IDを数値に変換
-    date: task.date.toISOString(), // 日付をISO文字列に変換
-    createdAt: task.createdAt.toISOString(), // 作成日時もISO文字列に変換
-  };
+  if (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
 
-  return Response.json(formatted);
+  return Response.json(data);
 }
 
-
-// タスク更新用のAPIルート
+// PUT
 export async function PUT(req: Request) {
   const body = await req.json();
 
-  // タスクを更新
-  const updated = await prisma.task.update({
-    where: { id: body.id },
-    data: {
+  if (isLocal) {
+    const updated = await prisma.task.update({
+      where: { id: body.id },
+      data: {
+        text: body.text,
+        tag: body.tag,
+        done: body.done,
+        totalMinutes: body.totalMinutes,
+      },
+    });
+
+    return Response.json({
+      ...updated,
+      id: Number(updated.id),
+      date: updated.date.toISOString(),
+      createdAt: updated.createdAt.toISOString(),
+    });
+  }
+
+  // 🔥 本番
+  const { data, error } = await supabase
+    .from("tasks")
+    .update({
       text: body.text,
       tag: body.tag,
       done: body.done,
-      totalMinutes: body.totalMinutes,
-    },
-  });
+      total_minutes: body.totalMinutes,
+    })
+    .eq("id", body.id);
 
-  // 🔥 BigInt → number 変換して返す
-  return Response.json({
-    ...updated,
-    id: Number(updated.id),
-    date: updated.date.toISOString(),
-    createdAt: updated.createdAt.toISOString(),
-  });
+  if (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+
+  return Response.json(data);
 }
