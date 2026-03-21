@@ -8,12 +8,12 @@ type Props = {
   deleteTask: (id: number) => void; // 削除関数
   updateTask: (id: number, newTask: Task) => void; // 編集保存関数
   toggleTask: (id: number) => void; // タスク完了状態切り替え関数
-  addStudyLog: (taskId: number, minutes: number) => void; //学習ログ追加関数
   studyLogs: StudyLog[]; // 学習ログ一覧
   setStudyLogs: React.Dispatch<React.SetStateAction<StudyLog[]>>; // 学習ログ更新関数
   fetchTasks: () => Promise<void>; // タスク再取得関数
   fetchStudyLogs: () => Promise<void>; // 学習ログ再取得関数
   uniqueTags: string[]; // 重複なしタグ一覧
+  createStudyLog: (taskId: number, minutes: number) => Promise<void>; // 学習ログ追加関数（API呼び出し版）
 };
 
 export default function TaskList({
@@ -21,12 +21,12 @@ export default function TaskList({
   deleteTask,
   updateTask,
   toggleTask,
-  addStudyLog,
   studyLogs,
   setStudyLogs,
   fetchTasks,
   fetchStudyLogs,
   uniqueTags,
+  createStudyLog,
 }: Props) {
   return (
     // タスク一覧
@@ -50,9 +50,6 @@ export default function TaskList({
           toggleTask={toggleTask}
           // タスク完了状態切り替え関数を子コンポーネントに渡す
 
-          addStudyLog={addStudyLog}
-          // 学習ログ追加関数を子コンポーネントに渡す
-
           studyLogs={studyLogs}
           // 学習ログ一覧を子コンポーネントに渡す
 
@@ -67,6 +64,10 @@ export default function TaskList({
 
           uniqueTags={uniqueTags}
           // 重複なしタグ一覧を子コンポーネントに渡す
+
+          createStudyLog={createStudyLog}
+          // 学習ログ追加関数を子コンポーネントに渡す（API呼び出し版）
+
         />
       ))}
     </ul>

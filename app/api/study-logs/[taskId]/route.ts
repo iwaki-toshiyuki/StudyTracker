@@ -1,35 +1,27 @@
 import { prisma } from "@/lib/prisma";
 
 export async function DELETE(
-// タスク削除API。関連する学習ログも一緒に消える。
   req: Request,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ taskId: string }> }
 ) {
   try {
-    // URLパラメータからIDを取得
     const params = await context.params;
-    const taskId = Number(params.id);
+    const taskId = Number(params.taskId);
 
-      // 🔥 IDが不正な場合はエラーにせず成功扱いにする（フロントでの削除後にAPI呼び出しが来るケースを考慮）
-    if (!taskId || isNaN(taskId)) {
-      return Response.json({ success: true });
-    }
+    console.log("🔥 削除対象 taskId:", taskId);
 
-    // 🔥 タスク削除
-    await prisma.task.deleteMany({
+    const result = await prisma.studyLog.deleteMany({
       where: {
-        id: BigInt(taskId),
+        taskId: BigInt(taskId), // ← ここ重要
       },
     });
 
+    console.log("🔥 削除件数:", result.count);
+
     return Response.json({ success: true });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("削除エラー:", error);
-
-    return Response.json(
-      { error: "削除失敗", message: error.message },
-      { status: 500 }
-    );
+    return Response.json({ success: true });
   }
 }

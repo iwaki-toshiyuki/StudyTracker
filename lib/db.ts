@@ -120,12 +120,13 @@ export async function createStudyLog(taskId: number, minutes: number) {
 
 // タスクに紐づく学習ログを削除する関数
 export async function deleteStudyLogsByTask(taskId: number) {
+  console.log("🔥 delete呼ばれた", taskId);
   if (isLocal) {
     const res = await fetch(`/api/study-logs/${taskId}`, {
       method: "DELETE",
     });
 
-    const data = await res.json();
+    console.log("DELETE status:", res.status);
 
     return;
   }

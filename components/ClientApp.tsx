@@ -237,12 +237,12 @@ useEffect(() => {
           deleteTask={deleteTask}
           updateTask={updateTask}
           toggleTask={toggleTask}
-          addStudyLog={addStudyLog}
           studyLogs={studyLogs}
           setStudyLogs={setStudyLogs}
           fetchTasks={fetchTasks}
           fetchStudyLogs={fetchStudyLogs}
           uniqueTags={uniqueTags}
+          createStudyLog={addStudyLog}
         />
 
         <Chart data={chartData} />

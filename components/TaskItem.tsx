@@ -10,12 +10,12 @@ type Props = {
   deleteTask: (id: number) => void; // 削除関数
   updateTask: (id: number, newTask: Task) => void; // 編集保存関数
   toggleTask: (id: number) => void; // タスク完了状態切り替え関数
-  addStudyLog: (taskId: number, minutes: number) => void; // 学習ログ追加関数
   studyLogs: StudyLog[]; // 学習ログ一覧
   setStudyLogs: React.Dispatch<React.SetStateAction<StudyLog[]>>; // 学習ログ更新関数
   fetchTasks: () => Promise<void>; // タスク再取得関数
   fetchStudyLogs: () => Promise<void>; // 学習ログ再取得関数
   uniqueTags: string[]; // 重複なしタグ一覧
+  createStudyLog: (taskId: number, minutes: number) => Promise<void>; // 学習ログ追加関数（API呼び出し版）
 };
 
 export default function TaskItem({
@@ -23,10 +23,10 @@ export default function TaskItem({
   deleteTask,
   updateTask,
   toggleTask,
-  addStudyLog,
   fetchTasks,
   fetchStudyLogs,
   uniqueTags,
+  createStudyLog,
 }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   // 編集モードかどうか
@@ -43,6 +43,11 @@ export default function TaskItem({
     // 学習時間を数値に変換
     const newMinutes = Number(minutes);
 
+    // 前削除
+    await fetch("/api/study-logs", {
+      method: "DELETE",
+    });
+
      // 🔥 DB更新
     await updateTaskDB({
       ...task,
@@ -53,13 +58,13 @@ export default function TaskItem({
   });
 
 
-    // 🔥 既存ログ削除
-    await deleteStudyLogsByTask(task.id);
-
     // 新しい学習ログを追加（0分は追加しない）
-   if (newMinutes > 0 && newMinutes !== task.totalMinutes) {
-    await addStudyLog(task.id, newMinutes);
-   }
+   if (newMinutes > 0) {
+    await createStudyLog(task.id, newMinutes);
+  }
+
+  
+
 
     // 編集保存
     updateTask(task.id, {
@@ -79,6 +84,7 @@ export default function TaskItem({
     // 編集モード終了
     setIsEditing(false);
 
+    console.log("task.id:", task.id);
 
   };
 
