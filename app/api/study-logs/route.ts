@@ -32,8 +32,8 @@ export async function GET() {
 
   // 🔥 camelCaseに変換（超重要）
   const formatted = data.map((log: any) => ({
-    id: log.id,
-    taskId: log.task_id,
+    id: Number(log.id),
+    taskId: Number(log.task_id),
     minutes: log.minutes,
     date: log.date,
     createdAt: log.created_at,
