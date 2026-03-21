@@ -26,48 +26,38 @@ import Dashboard from "../components/DashBoard";
 // 全体の学習時間や達成率を表示するダッシュボードコンポーネント
 
 import { supabase } from "../lib/supabase";
+// Supabaseクライアントをインポート
+
+import { getTasks, createTask, deleteTask as deleteTaskDB } from "../lib/db";
+// DB操作関数をインポート
 
 export default function ClientApp({ initialTasks, initialLogs }: Props) {
   const [task, setTask] = useState("");
   // 入力中のタスクを管理
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
 
-  const addTask = async() => {
-    // 空チェック(タスクとタグ両方)
-    if (!task.trim() || !tag.trim()) return;
+  // タグ入力用
+  const [tag, setTag] = useState("");
 
-  // DBにINSERT
-  const { error } = await supabase.from("tasks").insert({
-    text: task,
-    tag: tag,
-    done: false,
-    total_minutes: 0,
-    date: new Date().toISOString(),
-  });
+  // タスク追加関数
+  const addTask = async () => {
+  // タスクとタグの両方が空でないことを確認
+  if (!task.trim() || !tag.trim()) return;
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+  // タスクを追加してDBに保存
+  await createTask(task, tag);
 
-    // サーバーから再取得
-    await fetchTasks();
+  // タスクをAPIから再取得してstateを更新
+  await fetchTasks();
 
+  setTask("");
+  setTag("");
+};
 
-    setTask(""); // 入力リセット
-    setTag(""); // タグもリセット
-  };
 
   const deleteTask = async(id: number) => {
-    const { error } = await supabase
-    .from("tasks")
-    .delete()
-    .eq("id", id);
-
-  if (error) {
-    console.error(error);
-    return;
-  }
+    // タスク削除
+    await deleteTaskDB(id);
 
   // 再取得
   await fetchTasks();
@@ -99,8 +89,6 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
     )
   );
   };
-
-  console.log(tasks);
 
   // 学習ログ一覧
   // 全ての学習ログを管理
@@ -137,9 +125,6 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
 
   setStudyLogs(data || []);
 };
-
-  // タグ入力用
-  const [tag, setTag] = useState("");
 
   // 重複なしタグ一覧を作成
   const uniqueTags = Array.from(new Set(tasks.map((task) => task.tag)));
@@ -214,25 +199,21 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
 
   // タスクをAPIから再取得する関数
   const fetchTasks = async () => {
-  // DBから取得
-  const { data, error } = await supabase
-    .from("tasks")
-    .select("*")
-    .order("created_at", { ascending: false });
+  // APIからタスクを取得してstateを更新する関数
+  try {
+    const data = await getTasks();
 
-  if (error) {
+    setTasks(
+      data.map((task: any) => ({
+        ...task,
+        // SupabaseとPrisma両対応
+        totalMinutes:
+          task.totalMinutes ?? task.total_minutes ?? 0,
+      }))
+    );
+  } catch (error) {
     console.error(error);
-    return;
   }
-
-   // DBのカラム名に合わせて変換
-  const formatted = (data || []).map((task) => ({
-    ...task,
-    totalMinutes: task.total_minutes ?? 0, // ← 変換
-  }));
-
-  // state更新
-  setTasks(formatted);
 };
 
 
@@ -287,4 +268,4 @@ useEffect(() => {
       </div>
     </main>
   );
-}
+ }
