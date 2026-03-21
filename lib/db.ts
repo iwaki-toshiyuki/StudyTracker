@@ -13,12 +13,9 @@ export async function getTasks() {
     return await res.json();
     };
 
-  // 本番 → Supabase直接
-  const { data, error } = await supabase.from("tasks").select("*");
-
-  if (error) throw error;
-
-  return data;
+  // 🔥 本番もAPI経由にする
+    const res = await fetch("/api/tasks");
+    return await res.json();
 }
 
 // 追加
@@ -92,13 +89,8 @@ export async function getStudyLogs() {
     return await res.json();
   }
 
-  const { data, error } = await supabase
-    .from("study_logs")
-    .select("*");
-
-  if (error) throw error;
-
-  return data;
+  const res = await fetch("/api/study-logs");
+  return await res.json();
 }
 
 // 学習ログ追加
