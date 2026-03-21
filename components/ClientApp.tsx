@@ -25,49 +25,36 @@ import Chart from "../components/Chart";
 import Dashboard from "../components/DashBoard";
 // 全体の学習時間や達成率を表示するダッシュボードコンポーネント
 
-import { supabase } from "../lib/supabase";
+import { getTasks, createTask, deleteTask as deleteTaskDB, getStudyLogs, createStudyLog } from "../lib/db";
+// DB操作関数をインポート
 
 export default function ClientApp({ initialTasks, initialLogs }: Props) {
   const [task, setTask] = useState("");
   // 入力中のタスクを管理
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
 
-  const addTask = async() => {
-    // 空チェック(タスクとタグ両方)
-    if (!task.trim() || !tag.trim()) return;
+  // タグ入力用
+  const [tag, setTag] = useState("");
 
-  // DBにINSERT
-  const { error } = await supabase.from("tasks").insert({
-    text: task,
-    tag: tag,
-    done: false,
-    total_minutes: 0,
-    date: new Date().toISOString(),
-  });
+  // タスク追加関数
+  const addTask = async () => {
+  // タスクとタグの両方が空でないことを確認
+  if (!task.trim() || !tag.trim()) return;
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+  // タスクを追加してDBに保存
+  await createTask(task, tag);
 
-    // サーバーから再取得
-    await fetchTasks();
+  // タスクをAPIから再取得してstateを更新
+  await fetchTasks();
 
+  setTask("");
+  setTag("");
+};
 
-    setTask(""); // 入力リセット
-    setTag(""); // タグもリセット
-  };
 
   const deleteTask = async(id: number) => {
-    const { error } = await supabase
-    .from("tasks")
-    .delete()
-    .eq("id", id);
-
-  if (error) {
-    console.error(error);
-    return;
-  }
+    // タスク削除
+    await deleteTaskDB(id);
 
   // 再取得
   await fetchTasks();
@@ -100,8 +87,6 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   );
   };
 
-  console.log(tasks);
-
   // 学習ログ一覧
   // 全ての学習ログを管理
   const [studyLogs, setStudyLogs] = useState<StudyLog[]>(initialLogs);
@@ -109,46 +94,28 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   // 学習ログ追加関数
   const addStudyLog = async (taskId: number, minutes: number) => {
 
-    const { error } = await supabase.from("study_logs").insert({
-    task_id: taskId,
-    minutes: minutes,
-    date: new Date().toISOString(),
-  });
+    // 学習ログを追加してDBに保存
+    await createStudyLog(taskId, minutes);
 
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-    setStudyLogs((prev) => [...prev]);
-    // 配列に追加
   };
 
-  // タスクに紐づく学習ログを抽出(0分のログも含む)
+  // 学習ログ再取得関数
   const fetchStudyLogs = async () => {
-  const { data, error } = await supabase
-    .from("study_logs")
-    .select("*");
+    // APIから学習ログを取得してstateを更新する関数
+    const data = await getStudyLogs();
 
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  setStudyLogs(data || []);
+    // 取得したデータをstateにセット
+    setStudyLogs(data);
 };
 
-  // タグ入力用
-  const [tag, setTag] = useState("");
-
   // 重複なしタグ一覧を作成
-  const uniqueTags = Array.from(new Set(tasks.map((task) => task.tag)));
+  const uniqueTags = Array.from(new Set(tasks.map((task: any) => task.tag)));
 
   // タグごとの学習時間集計
   const tagSummary = studyLogs.reduce(
     (acc, log) => {
       // task_idからタスクを取得
-      const task = tasks.find((t) => t.id === log.task_id);
+      const task = tasks.find((t) => t.id === log.taskId);
 
       // タスクが見つからない場合はスキップ
       if (!task) return acc;
@@ -191,7 +158,6 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
     ...(othersSum > 0 ? [{ name: "Others", value: othersSum }] : []),
   ];
 
-
   // 今日の日付（YYYY-MM-DD形式）
   const today = new Date().toISOString().split("T")[0];
 
@@ -214,25 +180,21 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
 
   // タスクをAPIから再取得する関数
   const fetchTasks = async () => {
-  // DBから取得
-  const { data, error } = await supabase
-    .from("tasks")
-    .select("*")
-    .order("created_at", { ascending: false });
+  // APIからタスクを取得してstateを更新する関数
+  try {
+    const data = await getTasks();
 
-  if (error) {
+    setTasks(
+      data.map((task: any) => ({
+        ...task,
+        // SupabaseとPrisma両対応
+        totalMinutes:
+          task.totalMinutes ?? task.total_minutes ?? 0,
+      }))
+    );
+  } catch (error) {
     console.error(error);
-    return;
   }
-
-   // DBのカラム名に合わせて変換
-  const formatted = (data || []).map((task) => ({
-    ...task,
-    totalMinutes: task.total_minutes ?? 0, // ← 変換
-  }));
-
-  // state更新
-  setTasks(formatted);
 };
 
 
@@ -275,16 +237,16 @@ useEffect(() => {
           deleteTask={deleteTask}
           updateTask={updateTask}
           toggleTask={toggleTask}
-          addStudyLog={addStudyLog}
           studyLogs={studyLogs}
           setStudyLogs={setStudyLogs}
           fetchTasks={fetchTasks}
           fetchStudyLogs={fetchStudyLogs}
           uniqueTags={uniqueTags}
+          createStudyLog={addStudyLog}
         />
 
         <Chart data={chartData} />
       </div>
     </main>
   );
-}
+ }

@@ -1,0 +1,32 @@
+// Prisma Client生成
+generator client {
+  provider = "prisma-client-js"
+}
+
+// DB接続設定
+datasource db {
+  provider = "postgresql"
+}
+
+
+model Task {
+  id           BigInt   @id @default(autoincrement())
+  text         String
+  tag          String?
+  done         Boolean  @default(false)
+  totalMinutes Int      @default(0)
+  date         DateTime
+  createdAt    DateTime @default(now())
+
+  studyLogs    StudyLog[]
+}
+
+model StudyLog {
+  id        BigInt   @id @default(autoincrement())
+  taskId    BigInt
+  minutes   Int
+  date      DateTime
+  createdAt DateTime @default(now())
+
+  task      Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}

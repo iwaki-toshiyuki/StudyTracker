@@ -1,18 +1,21 @@
 import ClientApp from "../components/ClientApp";
-import { Task } from "../components/Types";
-
-async function getTasks(): Promise<Task[]> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/tasks`, {
-    cache: "no-store", // 常に最新取得
-  });
-  return res.json();
-}
+import { getTasksServer } from "@/lib/db.server";
 
 export default async function Page() {
+  const isLocal = process.env.NEXT_PUBLIC_DB_MODE === "local";
 
-  // サーバーコンポーネント内でデータを取得
-  const tasks = await getTasks();
+  let tasks = [];
+
+  if (isLocal) {
+    // ローカル → Prisma
+    tasks = await getTasksServer();
+  } else {
+    // 本番 → API経由（Supabase）
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tasks`, {
+      cache: "no-store",
+    });
+    tasks = await res.json();
+  }
 
   return(
 

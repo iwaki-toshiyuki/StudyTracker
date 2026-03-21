@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Task, StudyLog } from './Types';
-import { supabase } from "../lib/supabase";
 import TagInput from "./TagInput";
+import { updateTaskDB } from "../lib/db";
+import { deleteStudyLogsByTask } from "@/lib/db";
 
 // propsの型定義
 type Props = {
@@ -9,12 +10,12 @@ type Props = {
   deleteTask: (id: number) => void; // 削除関数
   updateTask: (id: number, newTask: Task) => void; // 編集保存関数
   toggleTask: (id: number) => void; // タスク完了状態切り替え関数
-  addStudyLog: (taskId: number, minutes: number) => void; // 学習ログ追加関数
   studyLogs: StudyLog[]; // 学習ログ一覧
   setStudyLogs: React.Dispatch<React.SetStateAction<StudyLog[]>>; // 学習ログ更新関数
   fetchTasks: () => Promise<void>; // タスク再取得関数
   fetchStudyLogs: () => Promise<void>; // 学習ログ再取得関数
   uniqueTags: string[]; // 重複なしタグ一覧
+  createStudyLog: (taskId: number, minutes: number) => Promise<void>; // 学習ログ追加関数（API呼び出し版）
 };
 
 export default function TaskItem({
@@ -22,10 +23,10 @@ export default function TaskItem({
   deleteTask,
   updateTask,
   toggleTask,
-  addStudyLog,
   fetchTasks,
   fetchStudyLogs,
   uniqueTags,
+  createStudyLog,
 }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   // 編集モードかどうか
@@ -42,28 +43,28 @@ export default function TaskItem({
     // 学習時間を数値に変換
     const newMinutes = Number(minutes);
 
+    // 前削除
+    await fetch("/api/study-logs", {
+      method: "DELETE",
+    });
+
      // 🔥 DB更新
-    await supabase
-      .from("tasks")
-      .update({
-        total_minutes: newMinutes, // 合計時間を更新
-        done: task.done, // 完了状態も更新
-        text: editTask, // タスク内容も更新
-        tag: editTag, // タグも更新
-      })
-      .eq("id", task.id);
+    await updateTaskDB({
+      ...task,
+      text: editTask,
+      tag: editTag,
+      done: task.done,
+      totalMinutes: newMinutes,
+  });
 
 
-    // 🔥 既存ログ削除
-    await supabase
-      .from("study_logs")
-      .delete()
-      .eq("task_id", task.id);
-
-    // 🔥 新しいログを1件だけ入れる
-    if (newMinutes > 0) {
-      await addStudyLog(task.id, newMinutes);
+    // 新しい学習ログを追加（0分は追加しない）
+   if (newMinutes > 0) {
+    await createStudyLog(task.id, newMinutes);
   }
+
+  
+
 
     // 編集保存
     updateTask(task.id, {
@@ -83,6 +84,7 @@ export default function TaskItem({
     // 編集モード終了
     setIsEditing(false);
 
+    console.log("task.id:", task.id);
 
   };
 
