@@ -160,6 +160,7 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
 
   console.log("studyLogs:", studyLogs);
   console.log(chartData)
+  console.log("tasks:", tasks);
 
   // 今日の日付（YYYY-MM-DD形式）
   const today = new Date().toISOString().split("T")[0];
