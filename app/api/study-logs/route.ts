@@ -1,7 +1,6 @@
 // 学習ログもタスクと同様に、APIルートを作成してデータベースとやり取りする
 
 import { prisma } from "@/lib/prisma";
-import { StudyLog } from "@prisma/client";
 
 // GET
 export async function GET() {
@@ -9,7 +8,7 @@ export async function GET() {
     orderBy: { id: "desc" },
   });
 
-  const formatted = logs.map((log: StudyLog) => ({
+  const formatted = logs.map((log: any) => ({
     ...log,
     id: Number(log.id),
     taskId: Number(log.taskId),

@@ -1,10 +1,6 @@
 // Prisma Clientを初期化
 import { prisma } from "./prisma";
 
-import { StudyLog } from "@prisma/client";
-
-
-
 // タスク取得
 export async function getTasksServer() {
   const tasks = await prisma.task.findMany({
@@ -26,7 +22,7 @@ export async function getStudyLogsServer() {
     orderBy: { id: "desc" },
   });
 
-  return logs.map((log: StudyLog) => ({
+  return logs.map((log: any) => ({
     ...log,
     id: Number(log.id),
     taskId: Number(log.taskId),
