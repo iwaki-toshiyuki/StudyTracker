@@ -27,7 +27,18 @@ export async function GET() {
     return Response.json({ error: error.message }, { status: 500 });
   }
 
-  return Response.json(data);
+  // 🔥 ここ追加
+  const formatted = data.map((task: any) => ({
+    id: Number(task.id),
+    text: task.text,
+    tag: task.tag ?? "",
+    done: task.done,
+    totalMinutes: task.total_minutes,
+    date: task.date,
+    createdAt: task.created_at,
+}));
+
+return Response.json(formatted);
 }
 
 // POST
