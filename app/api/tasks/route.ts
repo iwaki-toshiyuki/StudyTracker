@@ -46,3 +46,28 @@ export async function POST(req: Request) {
 
   return Response.json(formatted);
 }
+
+
+// タスク更新用のAPIルート
+export async function PUT(req: Request) {
+  const body = await req.json();
+
+  // タスクを更新
+  const updated = await prisma.task.update({
+    where: { id: body.id },
+    data: {
+      text: body.text,
+      tag: body.tag,
+      done: body.done,
+      totalMinutes: body.totalMinutes,
+    },
+  });
+
+  // 🔥 BigInt → number 変換して返す
+  return Response.json({
+    ...updated,
+    id: Number(updated.id),
+    date: updated.date.toISOString(),
+    createdAt: updated.createdAt.toISOString(),
+  });
+}
