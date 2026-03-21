@@ -32,7 +32,6 @@ export async function GET() {
 
   // 🔥 camelCaseに変換（超重要）
   const formatted = data.map((log: any) => ({
-    ...log,
     id: log.id,
     taskId: log.task_id,
     minutes: log.minutes,
