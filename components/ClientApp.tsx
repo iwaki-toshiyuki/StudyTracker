@@ -25,10 +25,7 @@ import Chart from "../components/Chart";
 import Dashboard from "../components/DashBoard";
 // 全体の学習時間や達成率を表示するダッシュボードコンポーネント
 
-import { supabase } from "../lib/supabase";
-// Supabaseクライアントをインポート
-
-import { getTasks, createTask, deleteTask as deleteTaskDB } from "../lib/db";
+import { getTasks, createTask, deleteTask as deleteTaskDB, getStudyLogs, createStudyLog } from "../lib/db";
 // DB操作関数をインポート
 
 export default function ClientApp({ initialTasks, initialLogs }: Props) {
@@ -97,33 +94,18 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   // 学習ログ追加関数
   const addStudyLog = async (taskId: number, minutes: number) => {
 
-    const { error } = await supabase.from("study_logs").insert({
-    task_id: taskId,
-    minutes: minutes,
-    date: new Date().toISOString(),
-  });
+    // 学習ログを追加してDBに保存
+    await createStudyLog(taskId, minutes);
 
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-    setStudyLogs((prev) => [...prev]);
-    // 配列に追加
   };
 
-  // タスクに紐づく学習ログを抽出(0分のログも含む)
+  // 学習ログ再取得関数
   const fetchStudyLogs = async () => {
-  const { data, error } = await supabase
-    .from("study_logs")
-    .select("*");
+    // APIから学習ログを取得してstateを更新する関数
+    const data = await getStudyLogs();
 
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  setStudyLogs(data || []);
+    // 取得したデータをstateにセット
+    setStudyLogs(data);
 };
 
   // 重複なしタグ一覧を作成
@@ -133,7 +115,7 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   const tagSummary = studyLogs.reduce(
     (acc, log) => {
       // task_idからタスクを取得
-      const task = tasks.find((t) => t.id === log.task_id);
+      const task = tasks.find((t) => t.id === log.taskId);
 
       // タスクが見つからない場合はスキップ
       if (!task) return acc;
@@ -175,7 +157,6 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
     ...top5,
     ...(othersSum > 0 ? [{ name: "Others", value: othersSum }] : []),
   ];
-
 
   // 今日の日付（YYYY-MM-DD形式）
   const today = new Date().toISOString().split("T")[0];

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Task, StudyLog } from './Types';
-import { supabase } from "../lib/supabase";
 import TagInput from "./TagInput";
+import { updateTaskDB } from "../lib/db";
+import { deleteStudyLogsByTask } from "@/lib/db";
 
 // propsの型定義
 type Props = {
@@ -43,27 +44,22 @@ export default function TaskItem({
     const newMinutes = Number(minutes);
 
      // 🔥 DB更新
-    await supabase
-      .from("tasks")
-      .update({
-        total_minutes: newMinutes, // 合計時間を更新
-        done: task.done, // 完了状態も更新
-        text: editTask, // タスク内容も更新
-        tag: editTag, // タグも更新
-      })
-      .eq("id", task.id);
+    await updateTaskDB({
+      ...task,
+      text: editTask,
+      tag: editTag,
+      done: task.done,
+      totalMinutes: newMinutes,
+  });
 
 
     // 🔥 既存ログ削除
-    await supabase
-      .from("study_logs")
-      .delete()
-      .eq("task_id", task.id);
+    await deleteStudyLogsByTask(task.id);
 
-    // 🔥 新しいログを1件だけ入れる
-    if (newMinutes > 0) {
-      await addStudyLog(task.id, newMinutes);
-  }
+    // 新しい学習ログを追加（0分は追加しない）
+   if (newMinutes > 0 && newMinutes !== task.totalMinutes) {
+    await addStudyLog(task.id, newMinutes);
+   }
 
     // 編集保存
     updateTask(task.id, {
