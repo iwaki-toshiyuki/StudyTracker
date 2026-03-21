@@ -46,3 +46,8 @@ URL
 ```
 http://localhost:3000
 ```
+
+Prisma確認コマンド
+```
+npx prisma studio
+```
