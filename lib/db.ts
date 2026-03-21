@@ -7,13 +7,6 @@ const isLocal = process.env.NEXT_PUBLIC_DB_MODE === "local";
 // 取得
 export async function getTasks() {
 
-  if (isLocal) {
-    // ローカル → API経由
-    const res = await fetch("/api/tasks");
-    return await res.json();
-    };
-
-  // 🔥 本番もAPI経由にする
     const res = await fetch("/api/tasks");
     return await res.json();
 }
@@ -84,10 +77,6 @@ export async function updateTaskDB(task: Task) {
 
 // study_logs取得
 export async function getStudyLogs() {
-  if (isLocal) {
-    const res = await fetch("/api/study-logs");
-    return await res.json();
-  }
 
   const res = await fetch("/api/study-logs");
   return await res.json();
