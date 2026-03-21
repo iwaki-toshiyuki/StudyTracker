@@ -109,7 +109,7 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
 };
 
   // 重複なしタグ一覧を作成
-  const uniqueTags = Array.from(new Set(tasks.map((task) => task.tag)));
+  const uniqueTags = Array.from(new Set(tasks.map((task: any) => task.tag)));
 
   // タグごとの学習時間集計
   const tagSummary = studyLogs.reduce(

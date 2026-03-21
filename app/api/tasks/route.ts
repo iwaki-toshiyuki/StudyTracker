@@ -9,7 +9,7 @@ export async function GET() {
   });
 
    // 🔥 BigInt → number 変換
-  const formatted = tasks.map((task) => ({
+  const formatted = tasks.map((task: any) => ({
       ...task,
     tag: task.tag ?? "", // tagがnullの場合は空文字にする
     id: Number(task.id), // IDを数値に変換

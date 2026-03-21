@@ -7,7 +7,7 @@ export async function getTasksServer() {
     orderBy: { id: "desc" },
   });
 
-  return tasks.map((task) => ({
+  return tasks.map((task: any) => ({
     ...task,
     tag: task.tag ?? "", // tagがnullの場合は空文字にする
     id: Number(task.id), // IDを数値に変換

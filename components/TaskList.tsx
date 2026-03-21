@@ -31,7 +31,7 @@ export default function TaskList({
   return (
     // タスク一覧
     <ul className="space-y-2">
-      {tasks.map((task) => (
+      {tasks.map((task: any) => (
         // tasks配列をループして表示
 
         <TaskItem
