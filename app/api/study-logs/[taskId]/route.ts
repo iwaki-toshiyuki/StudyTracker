@@ -8,12 +8,17 @@ export async function DELETE(
   try {
     // URLパラメータからIDを取得
     const params = await context.params;
-    const id = Number(params.id);
+    const taskId = Number(params.id);
 
-    // 🔥 タスク削除（関連ログも消える）
-    await prisma.task.delete({
+      // 🔥 IDが不正な場合はエラーにせず成功扱いにする（フロントでの削除後にAPI呼び出しが来るケースを考慮）
+    if (!taskId || isNaN(taskId)) {
+      return Response.json({ success: true });
+    }
+
+    // 🔥 タスク削除
+    await prisma.task.deleteMany({
       where: {
-        id: BigInt(id),
+        id: BigInt(taskId),
       },
     });
 
