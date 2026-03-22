@@ -25,7 +25,7 @@ import Chart from "../components/Chart";
 import Dashboard from "../components/DashBoard";
 // 全体の学習時間や達成率を表示するダッシュボードコンポーネント
 
-import { getTasks, createTask, deleteTask as deleteTaskDB, getStudyLogs, createStudyLog } from "../lib/db";
+import { getTasks, createTask, deleteTask as deleteTaskDB, getStudyLogs, createStudyLog, updateTaskDB } from "../lib/db";
 // DB操作関数をインポート
 
 export default function ClientApp({ initialTasks, initialLogs }: Props) {
@@ -74,17 +74,21 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   };
 
   // タスクの完了状態を切り替える関数
-  const toggleTask = (id: number) => {
-    // 完了状態切り替え
-    setTasks((prev) =>
+  const toggleTask = async (id: number) => {
 
-    // タスク配列をループして、対象のタスクだけdoneを反転させる
-    prev.map((task) =>
-      task.id === id
-        ? { ...task, done: !task.done }
-        : task
-    )
-  );
+    // 対象のタスクを取得
+    const target = tasks.find((t) => t.id === id);
+    if (!target) return;
+
+    // 新しい完了状態を作成
+    const updatedTask = { ...target, done: !target.done };
+
+    // DBに完了状態を保存（これをしないとリロード時にリセットされる）
+    await updateTaskDB(updatedTask);
+
+    // タスクとログを再取得してグラフを即時更新
+    await fetchTasks();
+    await fetchStudyLogs();
   };
 
   // 学習ログ一覧
@@ -111,14 +115,15 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   // 重複なしタグ一覧を作成
   const uniqueTags = Array.from(new Set(tasks.map((task: any) => task.tag)));
 
-  // タグごとの学習時間集計
+  // タグごとの学習時間集計（完了済みタスクのみ）
   const tagSummary = studyLogs.reduce(
     (acc, log) => {
       // task_idからタスクを取得
       const task = tasks.find((t) => t.id === log.taskId);
 
-      // タスクが見つからない場合はスキップ
-      if (!task) return acc;
+      // タスクが見つからない場合、または未完了の場合はスキップ
+      // → 完了チェックを入れたタスクだけグラフに反映する
+      if (!task || !task.done) return acc;
 
       // タグをキーにして学習時間を加算
       const tag = task.tag;
@@ -162,13 +167,54 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   console.log(chartData)
   console.log("tasks:", tasks);
 
-  // 今日の日付（YYYY-MM-DD形式）
-  const today = new Date().toISOString().split("T")[0];
+  // 今日の日付をローカル時刻で取得（YYYY-MM-DD形式）
+  // toISOString()はUTC時刻を返すため、日本時間では日付がずれる場合がある
+  const now = new Date();
+  const today = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+  ].join("-");
 
- // 今日のログだけ抽出して合計
+  // ログのdateをローカル日付に変換して今日のものか判定するヘルパー関数
+  const isToday = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const local = [
+      d.getFullYear(),
+      String(d.getMonth() + 1).padStart(2, "0"),
+      String(d.getDate()).padStart(2, "0"),
+    ].join("-");
+    return local === today;
+  };
+
+  // 今日のログだけ抽出して合計
   const todayMinutes = studyLogs
-  .filter((log) => log.date.startsWith(today)) // 今日のログだけ
-  .reduce((sum, log) => sum + log.minutes, 0); // 分を合計
+    .filter((log) => isToday(log.date)) // 今日のログだけ（ローカル日付で比較）
+    .reduce((sum, log) => sum + log.minutes, 0); // 分を合計
+
+  // 今日のログをタグ別に集計（円グラフ用、完了済みタスクのみ）
+  const todayTagSummary = studyLogs
+    .filter((log) => isToday(log.date)) // 今日のログだけ（ローカル日付で比較）
+    .reduce(
+      (acc, log) => {
+        // taskIdからタスクを取得
+        const task = tasks.find((t) => t.id === log.taskId);
+
+        // タスクが見つからない場合、または未完了の場合はスキップ
+        if (!task || !task.done) return acc;
+
+        const tag = task.tag;
+        if (!acc[tag]) acc[tag] = 0;
+        acc[tag] += log.minutes;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+  // 配列に変換（多い順に並べる）
+  const todayChartData = Object.entries(todayTagSummary)
+    .map(([tag, minutes]) => ({ name: tag, value: minutes }))
+    .sort((a, b) => b.value - a.value);
 
   // 総学習時間（全ログ合計）
   const overallMinutes = studyLogs.reduce(
@@ -249,7 +295,7 @@ useEffect(() => {
           createStudyLog={addStudyLog}
         />
 
-        <Chart data={chartData} />
+        <Chart data={chartData} todayData={todayChartData} />
       </div>
     </main>
   );

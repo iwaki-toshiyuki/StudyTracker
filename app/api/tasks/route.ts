@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { supabase } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+
 const isLocal = process.env.NEXT_PUBLIC_DB_MODE === "local";
 
 export async function GET() {
