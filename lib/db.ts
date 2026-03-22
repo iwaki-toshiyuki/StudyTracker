@@ -7,7 +7,7 @@ const isLocal = process.env.NEXT_PUBLIC_DB_MODE === "local";
 // 取得
 export async function getTasks() {
 
-    const res = await fetch("/api/tasks");
+    const res = await fetch("/api/tasks", { cache: "no-store" });
     return await res.json();
 }
 
@@ -78,7 +78,7 @@ export async function updateTaskDB(task: Task) {
 // study_logs取得
 export async function getStudyLogs() {
 
-  const res = await fetch("/api/study-logs");
+  const res = await fetch("/api/study-logs", { cache: "no-store" });
   return await res.json();
 }
 

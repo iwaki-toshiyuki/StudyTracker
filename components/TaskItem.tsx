@@ -43,8 +43,8 @@ export default function TaskItem({
     // 学習時間を数値に変換
     const newMinutes = Number(minutes);
 
-    // 前削除
-    await fetch("/api/study-logs", {
+    // 前削除（このタスクの学習ログをすべて削除）
+    await fetch(`/api/study-logs/${task.id}`, {
       method: "DELETE",
     });
 
