@@ -15,46 +15,37 @@ type Props = {
 export default function TaskForm({ task, setTask, addTask, tag, setTag, uniqueTags }: Props) {
 
   return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">タスクを追加</h2>
 
-    // タスク入力エリア
-    <div className="mb-6">
-
-      <div className="flex border rounded">
-
-      {/* タスク入力フォーム */}
-      <input
-        type="text"
-        value={task}
-        // 入力フォームの値をstateと同期
-
-        onChange={(e) => setTask(e.target.value)}
-        // 入力された文字をtask stateに保存
-
-        placeholder="タスクを入力"
-
-        className="flex-1 px-2 py-2 outline-none"
-      />
-
-      {/* タグ入力フォーム */}
-      <div className="w-40 border-l">
-        <TagInput
-          value={tag}
-          onChange={setTag}
-          options={uniqueTags}
+      <div className="space-y-3">
+        {/* タスク入力フォーム */}
+        <input
+          type="text"
+          value={task}
+          onChange={(e) => setTask(e.target.value)}
+          placeholder="タスクを入力"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
+
+        {/* タグ入力フォーム */}
+        <div className="border border-gray-200 rounded-lg">
+          <TagInput
+            value={tag}
+            onChange={setTag}
+            options={uniqueTags}
+          />
+        </div>
+
+        {/* タスク追加ボタン */}
+        <button
+          onClick={addTask}
+          className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 active:bg-blue-800 transition-colors"
+        >
+          追加
+        </button>
       </div>
-
     </div>
-
-      {/* タスク追加ボタン */}
-      <button
-        onClick={addTask}
-        className="bg-blue-500 text-white px-4 py-2 rounded"
-      >
-        追加
-      </button>
-    </div>
-
   );
 
 }

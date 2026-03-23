@@ -29,8 +29,9 @@ export default function TaskList({
   createStudyLog,
 }: Props) {
   return (
-    // タスク一覧
-    <ul className="space-y-2">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">タスク一覧</h2>
+      <ul className="space-y-2">
       {tasks.map((task: any) => (
         // tasks配列をループして表示
 
@@ -70,6 +71,7 @@ export default function TaskList({
 
         />
       ))}
-    </ul>
+      </ul>
+    </div>
   );
 }

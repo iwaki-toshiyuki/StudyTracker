@@ -257,45 +257,59 @@ useEffect(() => {
 
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-100">
-      {/* アプリ全体のカードUI */}
-      <div className="bg-white p-8 rounded-xl shadow-md w-[400px]">
-        {/* タイトル */}
-        <h1 className="text-2xl font-bold mb-6 text-center">Study Tracker</h1>
+    <main className="min-h-screen bg-gray-50">
+      {/* ヘッダー */}
+      <header className="bg-slate-800 px-6 py-4">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-xl font-bold text-white tracking-tight">Study Tracker</h1>
+        </div>
+      </header>
 
-        {/* ダッシュボード */}
-        <Dashboard
-          overallMinutes={overallMinutes}
-          todayMinutes={todayMinutes}
-          completedTaskCount={completedTaskCount}
-          totalTaskCount={totalTaskCount}
-        />
+      {/* メインコンテンツ */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* タスク入力フォーム */}
-        <TaskForm
-          task={task}
-          setTask={setTask}
-          tag={tag}
-          setTag={setTag}
-          uniqueTags={uniqueTags}
-          addTask={addTask}
-        />
+          {/* 左カラム：フォーム・タスク一覧 */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* タスク入力フォーム */}
+            <TaskForm
+              task={task}
+              setTask={setTask}
+              tag={tag}
+              setTag={setTag}
+              uniqueTags={uniqueTags}
+              addTask={addTask}
+            />
 
-        {/* タスク一覧 */}
-        <TaskList
-          tasks={tasks}
-          deleteTask={deleteTask}
-          updateTask={updateTask}
-          toggleTask={toggleTask}
-          studyLogs={studyLogs}
-          setStudyLogs={setStudyLogs}
-          fetchTasks={fetchTasks}
-          fetchStudyLogs={fetchStudyLogs}
-          uniqueTags={uniqueTags}
-          createStudyLog={addStudyLog}
-        />
+            {/* タスク一覧 */}
+            <TaskList
+              tasks={tasks}
+              deleteTask={deleteTask}
+              updateTask={updateTask}
+              toggleTask={toggleTask}
+              studyLogs={studyLogs}
+              setStudyLogs={setStudyLogs}
+              fetchTasks={fetchTasks}
+              fetchStudyLogs={fetchStudyLogs}
+              uniqueTags={uniqueTags}
+              createStudyLog={addStudyLog}
+            />
+          </div>
 
-        <Chart data={chartData} todayData={todayChartData} />
+          {/* 右カラム：ダッシュボード・グラフ */}
+          <div className="space-y-6">
+            {/* ダッシュボード */}
+            <Dashboard
+              overallMinutes={overallMinutes}
+              todayMinutes={todayMinutes}
+              completedTaskCount={completedTaskCount}
+              totalTaskCount={totalTaskCount}
+            />
+
+            <Chart data={chartData} todayData={todayChartData} />
+          </div>
+
+        </div>
       </div>
     </main>
   );

@@ -95,91 +95,91 @@ export default function TaskItem({
   const taskTotalMinutes = task.totalMinutes ?? 0;
 
   return (
-    <li className="border p-3 rounded">
+    <li className="rounded-lg border border-gray-200 p-4 hover:border-blue-200 hover:shadow-sm transition-all">
       {isEditing ? (
-        <>
-          {/* 編集入力フォーム */}
-          <div className="flex flex-wrap items-center gap-2 w-full">
-            {/* 編集時タスク入力 */}
+        <div className="space-y-3">
+          {/* 編集フォーム */}
+          <div className="flex gap-2">
             <input
               value={editTask}
               onChange={(e) => setEditTask(e.target.value)}
-              className="border px-2 py-1"
+              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-
-            {/* 学習時間入力 */}
             <input
               type="number"
               value={minutes}
               onChange={(e) => setMinutes(e.target.value)}
               placeholder="分"
-              className="border px-2 py-1 w-20"
+              className="w-20 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
 
-            {/* タグ候補ドロップダウン */}
-            <div className="border rounded">
-              <TagInput
-                value={editTag}
-                onChange={setEditTag}
-                options={uniqueTags}
+          <div className="border border-gray-200 rounded-lg">
+            <TagInput
+              value={editTag}
+              onChange={setEditTag}
+              options={uniqueTags}
+            />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={task.done}
+                onChange={() => toggleTask(task.id)}
+                className="rounded"
               />
-            </div>
-
-             {/* タスク完了チェック */}
-            <input
-              type="checkbox"
-              checked={task.done}
-              onChange={() => toggleTask(task.id)}
-            />
-
-            <button onClick={handleSave} className="text-green-500 ml-2">
+              完了
+            </label>
+            <button
+              onClick={handleSave}
+              className="bg-blue-600 text-white text-sm px-4 py-1.5 rounded-lg hover:bg-blue-700 transition-colors"
+            >
               保存
             </button>
-
-            {/* 削除ボタン */}
-
             <button
               onClick={() => deleteTask(task.id)}
-              className="text-red-500 ml-2"
+              className="text-sm px-4 py-1.5 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 transition-colors"
             >
               削除
             </button>
           </div>
-        </>
+        </div>
       ) : (
-        <>
-          <div className="flex justify-between items-center w-full">
-            {/* タスク表示 */}
-
-            <span className={task.done ? "line-through text-gray-400" : ""}>
-              {task.text} ({task.tag})（合計: {taskTotalMinutes}分）
+        <div className="flex justify-between items-start">
+          <div className="flex-1 min-w-0">
+            <span className={`text-sm font-medium block ${task.done ? "line-through text-gray-400" : "text-slate-700"}`}>
+              {task.text}
             </span>
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium border border-blue-100">
+                {task.tag}
+              </span>
+              <span className="text-xs text-slate-400">{taskTotalMinutes} 分</span>
+            </div>
+          </div>
 
+          <div className="flex items-center gap-1 ml-3 shrink-0">
             <button
               onClick={() => {
-                // 編集モードに切り替え
-                setIsEditing(true)
-                // 編集用stateに現在の値をセット
+                setIsEditing(true);
                 setEditTask(task.text);
                 setEditTag(task.tag);
                 setMinutes(taskTotalMinutes.toString());
-              }
-              }
-              className="text-blue-500 ml-2"
+              }}
+              className="text-xs text-slate-400 hover:text-blue-600 px-2 py-1 rounded hover:bg-blue-50 transition-colors"
             >
               編集
             </button>
-
-            {/* 削除ボタン */}
-
             <button
               onClick={() => deleteTask(task.id)}
-              className="text-red-500 ml-2"
+              className="text-xs text-slate-400 hover:text-red-500 px-2 py-1 rounded hover:bg-red-50 transition-colors"
             >
               削除
             </button>
           </div>
-        </>
+        </div>
       )}
     </li>
   );
