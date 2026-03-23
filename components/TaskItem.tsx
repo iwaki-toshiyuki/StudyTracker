@@ -94,8 +94,19 @@ export default function TaskItem({
   // タスクに紐づく学習ログを抽出(0分のログも含む)
   const taskTotalMinutes = task.totalMinutes ?? 0;
 
+  // 日付フォーマット関数
+  const formatDate = (dateStr: string) => {
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}/${
+    String(d.getMonth() + 1).padStart(2, "0")
+  }/${String(d.getDate()).padStart(2, "0")}`;
+};
+
   return (
     <li className="rounded-lg border border-gray-200 p-4 hover:border-blue-200 hover:shadow-sm transition-all">
+      <p className="text-xs text-gray-400">
+        作成日：{formatDate(task.createdAt)}
+      </p>
       {isEditing ? (
         <div className="space-y-3">
           {/* 編集フォーム */}

@@ -6,6 +6,8 @@ export type Task = {
   tag: string;   // 技術タグ
   totalMinutes: number; // 累計学習時間
   date: string; // タスク作成日
+  createdAt: string; // タスク作成日時
+
 };
 
 // 学習ログ型
