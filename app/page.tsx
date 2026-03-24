@@ -1,30 +1,17 @@
-import ClientApp from "../components/ClientApp";
-import { getTasksServer } from "@/lib/db.server";
+import { supabase } from "@/lib/supabase";
+import { redirect } from "next/navigation";
 
 export default async function Page() {
-  const isLocal = process.env.NEXT_PUBLIC_DB_MODE === "local";
+  // セッションを取得して認証状態を確認
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  let tasks = [];
-
-  if (isLocal) {
-    // ローカル → Prisma
-    tasks = await getTasksServer();
-  } else {
-    // 本番 → API経由（Supabase）
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tasks`, {
-      cache: "no-store",
-    });
-    tasks = await res.json();
+  // セッションがない場合はログインページへリダイレクト
+  if (!session) {
+    redirect("/login");
   }
 
-  return(
-
-    // クライアントコンポーネントにデータを渡す
-    <ClientApp
-      initialTasks={tasks}
-      initialLogs={[]}
-    />
-  );
+  // 認証されている場合はダッシュボードへリダイレクト
+  redirect("/dashboard");
 }
-
-
