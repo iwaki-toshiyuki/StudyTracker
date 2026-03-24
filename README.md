@@ -61,3 +61,9 @@ Prisma確認コマンド
 ```
 npx prisma studio
 ```
+
+Prisma接続
+```
+// usernameは自身のユーザー名を入力する
+psql postgresql://username@localhost:5432/study_tracker
+```
