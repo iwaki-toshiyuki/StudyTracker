@@ -2,42 +2,49 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
+
 
 export default function SignupPage() {
+  // サインアップページコンポーネント
+  const router = useRouter();
+
+
   // メールアドレスの状態管理
   const [email, setEmail] = useState("");
 
   // パスワードの状態管理
   const [password, setPassword] = useState("");
 
-  // ローディング状態の管理
-  const [loading, setLoading] = useState(false);
-
   // エラーメッセージの状態管理
   const [errorMessage, setErrorMessage] = useState("");
 
   // サインアップ処理
   const handleSignup = async () => {
-    // ローディング開始
-    if (loading) return;
-
     setErrorMessage("");
-    // ローディング状態をtrueに設定
-    setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
 
-    setLoading(false);
-
     if (error) {
-      console.log(error);
       setErrorMessage(error.message);
-    } else {
-      setErrorMessage("登録完了しました。確認メールをご確認ください。");
+      return;
     }
+
+    // 🔥 session取得
+    const { data: { session } } = await supabase.auth.getSession();
+
+    // 🔥 DB同期（超重要）
+    await fetch("/api/auth/sync", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session?.access_token}`,
+      },
+    });
+
+    router.push("/dashboard");
   };
 
   return (
@@ -61,10 +68,9 @@ export default function SignupPage() {
           />
           <button
             onClick={handleSignup}
-            disabled={loading}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition-colors"
           >
-            {loading ? "登録中..." : "登録"}
+            登録
           </button>
           {errorMessage && (
             <p className="text-sm text-center text-red-500">{errorMessage}</p>

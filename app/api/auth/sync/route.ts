@@ -21,12 +21,16 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if (!user.email) {
+  return Response.json({ error: "Email is required" }, { status: 400 });
+  }
+
   // SupabaseのユーザーデータをPrismaに保存（upsert）
   await prisma.user.upsert({
     where: { supabaseId: user.id },
     update: {},
     create: {
-      email: user.email!,
+      email: user.email,
       supabaseId: user.id,
     },
   });
