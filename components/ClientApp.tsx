@@ -246,13 +246,6 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   }
 };
 
-
-// 初回ロード時にAPIからタスクと学習ログを取得
-useEffect(() => {
-  fetchTasks();
-  fetchStudyLogs();
-}, []);
-
 // 認証状態の確認とリダイレクト
 const router = useRouter();
 
@@ -266,8 +259,9 @@ useEffect(() => {
         return;
       }
 
-      // ✅ ログイン済み → ダッシュボードへ
-      router.push("/dashboard");
+      // 🔥 ログイン済みだけデータ取得
+      await fetchTasks();
+      await fetchStudyLogs();
     };
 
     check();

@@ -8,6 +8,12 @@ export async function getTasks() {
   // 👇 セッション取得
   const { data: { session } } = await supabase.auth.getSession();
 
+  // 👇 セッションがない場合は空配列を返す
+  if (!session) {
+    console.warn("No session");
+    return [];
+  }
+
   // 👇 API呼び出し（トークン付き）
   const res = await fetch("/api/tasks", {
     headers: {
