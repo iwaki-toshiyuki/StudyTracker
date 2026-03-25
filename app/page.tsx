@@ -1,17 +1,30 @@
+"use client";
+
 import { supabase } from "@/lib/supabase";
-import { redirect } from "next/navigation";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default async function Page() {
-  // セッションを取得して認証状態を確認
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+export default  function Page() {
+  // routerの取得
+  const router = useRouter();
 
-  // 認証されている場合はダッシュボードへリダイレクト
-  if (session) {
-    redirect("/dashboard");
-  }
+  useEffect(() => {
+    const check = async () => {
+
+      // セッションを取得して認証状態を確認
+      const { data } = await supabase.auth.getSession();
+
+      // セッションがあればダッシュボードへ、なければログインページへリダイレクト
+      if (data.session) {
+            router.push("/dashboard");
+          } else {
+            router.push("/login");
+          }
+        };
+
+        check();
+      }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
