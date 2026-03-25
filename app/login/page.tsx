@@ -22,6 +22,11 @@ export default function LoginPage() {
       password,
     });
 
+    console.log("login result:", data);
+
+    const session = await supabase.auth.getSession();
+    console.log("session:", session);
+
     if (error) {
       console.log(error);
       setErrorMessage(error.message);

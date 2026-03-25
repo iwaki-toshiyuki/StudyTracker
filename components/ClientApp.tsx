@@ -163,9 +163,6 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
     ...(othersSum > 0 ? [{ name: "Others", value: othersSum }] : []),
   ];
 
-  console.log("studyLogs:", studyLogs);
-  console.log(chartData)
-  console.log("tasks:", tasks);
 
   // 今日の日付をローカル時刻で取得（YYYY-MM-DD形式）
   // toISOString()はUTC時刻を返すため、日本時間では日付がずれる場合がある
