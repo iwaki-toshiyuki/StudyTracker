@@ -258,13 +258,6 @@ useEffect(() => {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      {/* ヘッダー */}
-      <header className="bg-slate-800 px-6 py-4">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-xl font-bold text-white tracking-tight">Study Tracker</h1>
-        </div>
-      </header>
-
       {/* メインコンテンツ */}
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
