@@ -13,6 +13,7 @@ export type Task = {
 // 学習ログ型
 export type StudyLog = {
   taskId: number; // ← タスクのID
+  userId: number; // ← ユーザーのID
   minutes: number;   // 学習時間（分）
   date: string;      // 日付
 };

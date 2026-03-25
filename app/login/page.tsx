@@ -11,21 +11,35 @@ export default function LoginPage() {
   // メールアドレスとパスワードの状態管理
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   // ログイン処理
   const handleLogin = async () => {
+    setErrorMessage("");
     // Supabaseの認証APIを呼び出してログイン
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data , error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+
+    if (error) {
+      console.log(error);
+      setErrorMessage(error.message);
+      return;
+    }
+
+    console.log("Supabase user id:", data.user?.id);
 
     // エラーがなければダッシュボードへリダイレクト
     if (!error) {
 
       // ログイン成功後、SupabaseのユーザーデータをPrismaに保存するAPIを呼び出す
+      const { data: { session } } = await supabase.auth.getSession();
       await fetch("/api/auth/sync", {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
       });
 
       // ダッシュボードへリダイレクト
@@ -58,6 +72,9 @@ export default function LoginPage() {
           >
             ログイン
           </button>
+          {errorMessage && (
+            <p className="text-sm text-center text-red-500">{errorMessage}</p>
+          )}
         </div>
         <p className="text-center text-sm text-gray-500 mt-6">
           アカウントをお持ちでない方は{" "}

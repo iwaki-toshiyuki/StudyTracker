@@ -1,16 +1,28 @@
 import { prisma } from "@/lib/prisma";
-import { supabase } from "@/lib/supabase";
-import { getCurrentUser } from "@/lib/auth";
+import { createClient } from "@supabase/supabase-js";
+import { NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";
 
 const isLocal = process.env.NEXT_PUBLIC_DB_MODE === "local";
 
-export async function GET() {
-  const user = await getCurrentUser();
+export async function GET(req: NextRequest) {
+  // 👇 認証（共通）
+  const authHeader = req.headers.get("Authorization");
+  const token = authHeader?.replace("Bearer ", "");
 
-  // 認証されていない場合は401を返す
-  if (!user) {
+  if (!token) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const supabaseAuth = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
+
+  if (authError || !user) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -20,9 +32,12 @@ export async function GET() {
       where: { supabaseId: user.id },
     });
 
+    if (!dbUser) {
+      return Response.json([], { status: 200 }); // 👈 404じゃなくてこれ推奨
+    }
+
 
     const tasks = await prisma.task.findMany({
-      where: { userId: dbUser?.id },
       orderBy: { id: "desc" },
     });
 
@@ -38,7 +53,7 @@ export async function GET() {
   }
 
   // 🔥 本番（Supabase）
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAuth
     .from("tasks")
     .select("*")
     .eq("user_id", user.id);
@@ -63,21 +78,35 @@ return Response.json(formatted);
 
 // POST
 export async function POST(req: Request) {
-  // 認証チェック
-  const user = await getCurrentUser();
+  const authHeader = req.headers.get("Authorization");
+  const token = authHeader?.replace("Bearer ", "");
 
-  // 認証されていない場合は401を返す
-  if (!user) {
+  if (!token) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json();
+  const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+  if (authError || !user) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   if (isLocal) {
     // 🔥 ローカル（Prisma）
     const dbUser = await prisma.user.findUnique({
       where: { supabaseId: user.id },
     });
+
+    if (!dbUser) {
+      return Response.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const body = await req.json();
 
 
     const task = await prisma.task.create({
@@ -98,6 +127,8 @@ export async function POST(req: Request) {
     });
   }
 
+  const body = await req.json();
+
   // 🔥 本番
   const { data, error } = await supabase.from("tasks").insert({
     text: body.text,
@@ -117,19 +148,34 @@ export async function POST(req: Request) {
 
 // PUT
 export async function PUT(req: Request) {
-  // 認証チェック
-  const user = await getCurrentUser();
+  const authHeader = req.headers.get("Authorization");
+  const token = authHeader?.replace("Bearer ", "");
 
-  // 認証されていない場合は401を返す
-  if (!user) {
+  if (!token) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+  if (authError || !user) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = await req.json();
 
   if (isLocal) {
     const dbUser = await prisma.user.findUnique({
       where: { supabaseId: user.id },
     });
+
+    if (!dbUser) {
+      return Response.json({ error: "User not found" }, { status: 404 });
+    }
 
     const updated = await prisma.task.update({
       where: { id: body.id },

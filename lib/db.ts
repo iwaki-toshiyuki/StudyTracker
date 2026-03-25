@@ -4,18 +4,39 @@ import { Task } from "@/components/Types";
 // ローカル環境かどうかを判定するフラグ
 const isLocal = process.env.NEXT_PUBLIC_DB_MODE === "local";
 
-// 取得
 export async function getTasks() {
+  // 👇 セッション取得
+  const { data: { session } } = await supabase.auth.getSession();
 
-    const res = await fetch("/api/tasks", { cache: "no-store" });
-    return await res.json();
+  // 👇 API呼び出し（トークン付き）
+  const res = await fetch("/api/tasks", {
+    headers: {
+      Authorization: `Bearer ${session?.access_token}`,
+    },
+  });
+
+  const data = await res.json();
+
+  // 👇 安全対策
+  if (!Array.isArray(data)) {
+    console.error("Invalid response:", data);
+    return [];
+  }
+
+  return data;
 }
 
 // 追加
 export async function createTask(text: string, tag: string) {
+  // 追加する関数
+  const { data: { session } } = await supabase.auth.getSession();
   if (isLocal) {
     await fetch("/api/tasks", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session?.access_token}`,
+      },
       body: JSON.stringify({ text, tag }),
     });
     return;
@@ -36,9 +57,15 @@ export async function createTask(text: string, tag: string) {
 
 // 削除
 export async function deleteTask(id: number) {
+  // タスクを削除する関数
+  const { data: { session } } = await supabase.auth.getSession();
+
   if (isLocal) {
     await fetch(`/api/tasks/${id}`, {
       method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${session?.access_token}`,
+      },
     });
     return;
   }
@@ -53,10 +80,17 @@ export async function deleteTask(id: number) {
 
 export async function updateTaskDB(task: Task) {
   // タスクを更新する関数
+
+  const { data: { session } } = await supabase.auth.getSession();
+
   // ローカル環境ならAPI経由で更新
   if (isLocal) {
     await fetch("/api/tasks", {
       method: "PUT",
+      headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session?.access_token}`,
+    },
       body: JSON.stringify(task),
     });
     return;
@@ -77,16 +111,28 @@ export async function updateTaskDB(task: Task) {
 
 // study_logs取得
 export async function getStudyLogs() {
+  const { data: { session } } = await supabase.auth.getSession();
 
-  const res = await fetch("/api/study-logs", { cache: "no-store" });
+  const res = await fetch("/api/study-logs", { 
+    headers: {
+      Authorization: `Bearer ${session?.access_token}`,
+    },
+   });
   return await res.json();
 }
 
 // 学習ログ追加
 export async function createStudyLog(taskId: number, minutes: number) {
+  // 学習ログを追加する関数
+  const { data: { session } } = await supabase.auth.getSession();
+
   if (isLocal) {
     await fetch("/api/study-logs", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session?.access_token}`,
+      },
       body: JSON.stringify({ taskId, minutes }),
     });
     return;
@@ -101,13 +147,15 @@ export async function createStudyLog(taskId: number, minutes: number) {
 
 // タスクに紐づく学習ログを削除する関数
 export async function deleteStudyLogsByTask(taskId: number) {
-  console.log("🔥 delete呼ばれた", taskId);
+  const { data: { session } } = await supabase.auth.getSession();
+
   if (isLocal) {
     const res = await fetch(`/api/study-logs/${taskId}`, {
       method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${session?.access_token}`,
+      },
     });
-
-    console.log("DELETE status:", res.status);
 
     return;
   }

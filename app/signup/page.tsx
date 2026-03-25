@@ -13,11 +13,15 @@ export default function SignupPage() {
   // ローディング状態の管理
   const [loading, setLoading] = useState(false);
 
+  // エラーメッセージの状態管理
+  const [errorMessage, setErrorMessage] = useState("");
+
   // サインアップ処理
   const handleSignup = async () => {
     // ローディング開始
     if (loading) return;
 
+    setErrorMessage("");
     // ローディング状態をtrueに設定
     setLoading(true);
 
@@ -26,12 +30,14 @@ export default function SignupPage() {
       password,
     });
 
-    // サインアップ成功後、確認メールが送信されたことをユーザーに通知
     setLoading(false);
 
     if (error) {
-    console.log(error);
-  }
+      console.log(error);
+      setErrorMessage(error.message);
+    } else {
+      setErrorMessage("登録完了しました。確認メールをご確認ください。");
+    }
   };
 
   return (
@@ -60,6 +66,9 @@ export default function SignupPage() {
           >
             {loading ? "登録中..." : "登録"}
           </button>
+          {errorMessage && (
+            <p className="text-sm text-center text-red-500">{errorMessage}</p>
+          )}
         </div>
         <p className="text-center text-sm text-gray-500 mt-6">
           すでにアカウントをお持ちの方は{" "}

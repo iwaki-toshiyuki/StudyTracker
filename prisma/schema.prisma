@@ -27,11 +27,13 @@ model Task {
 model StudyLog {
   id        BigInt   @id @default(autoincrement())
   taskId    BigInt
+  userId  Int
   minutes   Int
   date      DateTime
   createdAt DateTime @default(now())
 
   task      Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id])
 }
 
 model User {
@@ -41,4 +43,5 @@ model User {
   createdAt   DateTime @default(now())
 
   tasks       Task[]
+  studyLogs   StudyLog[]
 }
