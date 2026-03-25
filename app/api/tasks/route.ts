@@ -54,10 +54,21 @@ export async function GET(req: NextRequest) {
   }
 
   // 🔥 本番（Supabase）
+  // 🔥 usersテーブルからID取得
+  const { data: dbUser } = await supabaseAuth
+    .from("users")
+    .select("id")
+    .eq("supabase_id", user.id)
+    .single();
+
+  if (!dbUser) {
+    return Response.json([], { status: 200 });
+  }
+
   const { data, error } = await supabaseAuth
     .from("tasks")
     .select("*")
-    .eq("user_id", user.id);
+    .eq("user_id", dbUser.id);
 
   if (error) {
     return Response.json({ error: error.message }, { status: 500 });
