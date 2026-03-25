@@ -22,6 +22,8 @@ model Task {
 
   userId Int
   user   User @relation(fields: [userId], references: [id])
+
+  @@map("tasks")
 }
 
 model StudyLog {
@@ -34,6 +36,8 @@ model StudyLog {
 
   task      Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
   user    User     @relation(fields: [userId], references: [id])
+
+  @@map("study_logs")
 }
 
 model User {
@@ -44,4 +48,6 @@ model User {
 
   tasks       Task[]
   studyLogs   StudyLog[]
+
+  @@map("users")
 }
