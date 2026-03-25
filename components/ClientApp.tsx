@@ -11,7 +11,9 @@ type Props = {
 import { Task, StudyLog } from "../components/Types";
 
 import { useState, useEffect} from "react";
-// Reactのstate管理フックをインポート
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
+// 認証状態の確認とリダイレクトのためにsupabaseとrouterをインポート
 
 import TaskForm from "../components/TaskForm";
 // 入力フォームコンポーネント
@@ -250,6 +252,26 @@ useEffect(() => {
   fetchTasks();
   fetchStudyLogs();
 }, []);
+
+// 認証状態の確認とリダイレクト
+const router = useRouter();
+
+useEffect(() => {
+    const check = async () => {
+      const { data } = await supabase.auth.getSession();
+
+      // ✅ 未ログイン → ログインページへ
+      if (!data.session) {
+        router.push("/login");
+        return;
+      }
+
+      // ✅ ログイン済み → ダッシュボードへ
+      router.push("/dashboard");
+    };
+
+    check();
+  }, []);
 
 
 
