@@ -22,10 +22,6 @@ export default function LoginPage() {
       password,
     });
 
-    console.log("login result:", data);
-
-    const session = await supabase.auth.getSession();
-    console.log("session:", session);
 
     if (error) {
       console.log(error);
@@ -33,7 +29,6 @@ export default function LoginPage() {
       return;
     }
 
-    console.log("Supabase user id:", data.user?.id);
 
     // エラーがなければダッシュボードへリダイレクト
     if (!error) {
