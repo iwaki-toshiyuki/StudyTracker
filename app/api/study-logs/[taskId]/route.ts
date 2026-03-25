@@ -18,7 +18,6 @@ export async function DELETE(
         },
       });
 
-      console.log("🔥 削除件数:", result.count);
       return Response.json({ success: true });
     }
 

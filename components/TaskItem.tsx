@@ -84,7 +84,6 @@ export default function TaskItem({
     // 編集モード終了
     setIsEditing(false);
 
-    console.log("task.id:", task.id);
 
   };
 

@@ -19,14 +19,29 @@ model Task {
   createdAt    DateTime @default(now())
 
   studyLogs    StudyLog[]
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
 }
 
 model StudyLog {
   id        BigInt   @id @default(autoincrement())
   taskId    BigInt
+  userId  Int
   minutes   Int
   date      DateTime
   createdAt DateTime @default(now())
 
   task      Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id])
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  supabaseId  String   @unique
+  createdAt   DateTime @default(now())
+
+  tasks       Task[]
+  studyLogs   StudyLog[]
 }

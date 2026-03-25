@@ -11,7 +11,9 @@ type Props = {
 import { Task, StudyLog } from "../components/Types";
 
 import { useState, useEffect} from "react";
-// Reactのstate管理フックをインポート
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
+// 認証状態の確認とリダイレクトのためにsupabaseとrouterをインポート
 
 import TaskForm from "../components/TaskForm";
 // 入力フォームコンポーネント
@@ -163,9 +165,6 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
     ...(othersSum > 0 ? [{ name: "Others", value: othersSum }] : []),
   ];
 
-  console.log("studyLogs:", studyLogs);
-  console.log(chartData)
-  console.log("tasks:", tasks);
 
   // 今日の日付をローカル時刻で取得（YYYY-MM-DD形式）
   // toISOString()はUTC時刻を返すため、日本時間では日付がずれる場合がある
@@ -254,17 +253,30 @@ useEffect(() => {
   fetchStudyLogs();
 }, []);
 
+// 認証状態の確認とリダイレクト
+const router = useRouter();
+
+useEffect(() => {
+    const check = async () => {
+      const { data } = await supabase.auth.getSession();
+
+      // ✅ 未ログイン → ログインページへ
+      if (!data.session) {
+        router.push("/login");
+        return;
+      }
+
+      // ✅ ログイン済み → ダッシュボードへ
+      router.push("/dashboard");
+    };
+
+    check();
+  }, []);
+
 
 
   return (
     <main className="min-h-screen bg-gray-50">
-      {/* ヘッダー */}
-      <header className="bg-slate-800 px-6 py-4">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-xl font-bold text-white tracking-tight">Study Tracker</h1>
-        </div>
-      </header>
-
       {/* メインコンテンツ */}
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
