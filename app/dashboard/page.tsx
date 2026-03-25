@@ -10,11 +10,9 @@ export default async function Page() {
     // ローカル → Prisma
     tasks = await getTasksServer();
   } else {
-    // 本番 → API経由（Supabase）
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tasks`, {
-      cache: "no-store",
-    });
-    tasks = await res.json();
+    // 本番 → Server ComponentはAuthトークンを持てないため空配列で初期化
+    // ClientApp内のuseEffectで認証後にデータ取得する
+    tasks = [];
   }
 
   return(

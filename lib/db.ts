@@ -39,6 +39,7 @@ export async function getTasks() {
 export async function createTask(text: string, tag: string) {
   // 追加する関数
   const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Not authenticated");
   if (isLocal) {
     await fetch("/api/tasks", {
       method: "POST",
@@ -51,12 +52,21 @@ export async function createTask(text: string, tag: string) {
     return;
   }
 
+  const { data: dbUser, error: userError } = await supabase
+    .from("users")
+    .select("id")
+    .eq("supabase_id", session.user.id)
+    .single();
+
+  if (userError || !dbUser) throw new Error("User not found");
+
   const { data, error } = await supabase.from("tasks").insert({
     text,
     tag,
     done: false,
     total_minutes: 0,
     date: new Date().toISOString(),
+    user_id: dbUser.id,
   });
 
   if (error) throw error;
