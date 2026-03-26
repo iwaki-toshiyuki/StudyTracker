@@ -137,7 +137,11 @@ export async function getStudyLogs() {
       Authorization: `Bearer ${session?.access_token}`,
     },
    });
-  return await res.json();
+  const data = await res.json();
+
+  console.log("studyLogs raw:", data); // 🔥これ
+
+  return data;
 }
 
 // 学習ログ追加
