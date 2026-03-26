@@ -161,10 +161,25 @@ export async function createStudyLog(taskId: number, minutes: number) {
     return;
   }
 
+  // 🔥 追加：ユーザー取得
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // 🔥 usersテーブルからid取得
+  const { data: dbUser } = await supabase
+    .from("users")
+    .select("id")
+    .eq("supabaseId", user?.id)
+    .single();
+
+  if (!dbUser) throw new Error("User not found");
+
+
+  // 🔥 study_logsテーブルに挿入
   await supabase.from("study_logs").insert({
     taskId,
     minutes,
     date: new Date().toISOString(),
+    userId: dbUser.id
   });
 }
 
