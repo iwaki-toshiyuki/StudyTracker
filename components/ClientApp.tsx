@@ -110,8 +110,6 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
     // APIから学習ログを取得してstateを更新する関数
     const data = await getStudyLogs();
 
-    console.log("studyLogs:", data);
-
     // 取得したデータをstateにセット
     setStudyLogs(data);
 };
@@ -234,8 +232,6 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   // APIからタスクを取得してstateを更新する関数
   try {
     const data = await getTasks();
-
-    console.log("tasks:", data);
 
     setTasks(
       data.map((task: any) => ({

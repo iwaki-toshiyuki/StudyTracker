@@ -62,8 +62,6 @@ export async function GET(req: NextRequest) {
     .eq("supabaseId", user.id)
     .single();
 
-  console.log("dbUser:", dbUser);
-
   if (userError || !dbUser) {
     return Response.json([], { status: 200 });
   }

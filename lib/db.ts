@@ -23,9 +23,6 @@ export async function getTasks() {
 
   const data = await res.json();
 
-  // 🔥 追加（ここ）
-  console.log("tasks data:", data);
-
   // 👇 安全対策
   if (!Array.isArray(data)) {
     console.error("Invalid response:", data);
@@ -138,8 +135,6 @@ export async function getStudyLogs() {
     },
    });
   const data = await res.json();
-
-  console.log("studyLogs raw:", data); // 🔥これ
 
   return data;
 }
