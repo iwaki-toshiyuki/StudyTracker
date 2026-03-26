@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
   const { data: dbUser, error: userError } = await supabase
     .from("users")
     .select("id")
-    .eq("supabase_id", user.id)
+    .eq("supabaseId", user.id)
     .single();
 
   if (userError || !dbUser) {
@@ -69,19 +69,18 @@ export async function GET(req: NextRequest) {
   const { data, error } = await supabase
     .from("study_logs")
     .select("*")
-    .eq("user_id", dbUser.id);
+    .eq("userId", dbUser.id);
 
   if (error || !data) {
   return Response.json([], { status: 200 });
   }
 
-  // 🔥 camelCaseに変換（超重要）
   const formatted = data.map((log: any) => ({
     id: Number(log.id),
-    taskId: Number(log.task_id),
+    taskId: Number(log.taskId),
     minutes: log.minutes,
     date: log.date,
-    createdAt: log.created_at,
+    createdAt: log.createdAt,
   }));
 
   return Response.json(formatted);
@@ -137,10 +136,10 @@ export async function POST(req: Request) {
 
   // 本番（Supabase）
   const { data, error } = await supabase.from("study_logs").insert({
-    task_id: body.taskId,
+    taskId: body.taskId,
     minutes: body.minutes,
     date: new Date().toISOString(),
-    user_id: dbUser.id
+    userId: dbUser.id
   });
 
   if (error) {
