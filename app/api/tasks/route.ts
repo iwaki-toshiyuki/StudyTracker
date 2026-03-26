@@ -142,13 +142,23 @@ export async function POST(req: Request) {
   const body = await req.json();
 
   // 🔥 本番
+  const { data: dbUser, error: userError } = await supabase
+    .from("users")
+    .select("id")
+    .eq("supabaseId", user.id)
+    .single();
+
+  if (userError || !dbUser) {
+    return Response.json({ error: "User not found" }, { status: 404 });
+  }
+
   const { data, error } = await supabase.from("tasks").insert({
     text: body.text,
     tag: body.tag,
     done: false,
     totalMinutes: 0,
     date: new Date().toISOString(),
-    userId: user.id,
+    userId: dbUser.id,
   });
 
   if (error) {

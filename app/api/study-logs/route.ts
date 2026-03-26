@@ -106,16 +106,17 @@ export async function POST(req: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const dbUser = await prisma.user.findUnique({
-    where: { supabaseId: user.id },
-  });
-
-  if (!dbUser) {
-    return Response.json({ error: "User not found" }, { status: 404 });
-  }
   const body = await req.json();
 
   if (isLocal) {
+    const dbUser = await prisma.user.findUnique({
+      where: { supabaseId: user.id },
+    });
+
+    if (!dbUser) {
+      return Response.json({ error: "User not found" }, { status: 404 });
+    }
+
     const log = await prisma.studyLog.create({
       data: {
         taskId: BigInt(body.taskId),
@@ -135,11 +136,21 @@ export async function POST(req: Request) {
   }
 
   // 本番（Supabase）
+  const { data: dbUser, error: userError } = await supabase
+    .from("users")
+    .select("id")
+    .eq("supabaseId", user.id)
+    .single();
+
+  if (userError || !dbUser) {
+    return Response.json({ error: "User not found" }, { status: 404 });
+  }
+
   const { data, error } = await supabase.from("study_logs").insert({
     taskId: body.taskId,
     minutes: body.minutes,
     date: new Date().toISOString(),
-    userId: dbUser.id
+    userId: dbUser.id,
   });
 
   if (error) {
