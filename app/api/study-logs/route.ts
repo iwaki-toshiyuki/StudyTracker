@@ -21,20 +21,22 @@ export async function GET(req: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
+
+  // 🔥 認証トークンからユーザー情報を取得
   const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
 
   if (authError || !user) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (isLocal) {
+
+    if (isLocal) {
     const dbUser = await prisma.user.findUnique({
       where: { supabaseId: user.id },
     });
 
     if (!dbUser) {
-      return Response.json([], { status: 200 });
+    return Response.json([], { status: 200 });
     }
-
 
     const logs = await prisma.studyLog.findMany({
       where: { userId: dbUser.id },
@@ -54,12 +56,23 @@ export async function GET(req: NextRequest) {
   }
 
   // 🔥 本番（Supabase）
+  const { data: dbUser, error: userError } = await supabase
+    .from("users")
+    .select("id")
+    .eq("supabase_id", user.id)
+    .single();
+
+  if (userError || !dbUser) {
+    return Response.json([], { status: 200 });
+  }
+
   const { data, error } = await supabase
     .from("study_logs")
-    .select("*");
+    .select("*")
+    .eq("user_id", dbUser.id);
 
-  if (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+  if (error || !data) {
+  return Response.json([], { status: 200 });
   }
 
   // 🔥 camelCaseに変換（超重要）
@@ -127,6 +140,7 @@ export async function POST(req: Request) {
     task_id: body.taskId,
     minutes: body.minutes,
     date: new Date().toISOString(),
+    user_id: dbUser.id
   });
 
   if (error) {
