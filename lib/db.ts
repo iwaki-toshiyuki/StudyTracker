@@ -55,7 +55,7 @@ export async function createTask(text: string, tag: string) {
   const { data: dbUser, error: userError } = await supabase
     .from("users")
     .select("id")
-    .eq("supabase_id", session.user.id)
+    .eq("supabaseId", session.user.id)
     .single();
 
   if (userError || !dbUser) throw new Error("User not found");
@@ -64,9 +64,9 @@ export async function createTask(text: string, tag: string) {
     text,
     tag,
     done: false,
-    total_minutes: 0,
+    totalMinutes: 0,
     date: new Date().toISOString(),
-    user_id: dbUser.id,
+    userId: dbUser.id,
   });
 
   if (error) throw error;
@@ -122,7 +122,7 @@ export async function updateTaskDB(task: Task) {
       text: task.text,
       tag: task.tag,
       done: task.done,
-      total_minutes: task.totalMinutes,
+      totalMinutes: task.totalMinutes,
     })
     .eq("id", task.id);
 }
@@ -158,7 +158,7 @@ export async function createStudyLog(taskId: number, minutes: number) {
   }
 
   await supabase.from("study_logs").insert({
-    task_id: taskId,
+    taskId,
     minutes,
     date: new Date().toISOString(),
   });
@@ -182,5 +182,5 @@ export async function deleteStudyLogsByTask(taskId: number) {
   await supabase
     .from("study_logs")
     .delete()
-    .eq("task_id", taskId);
+    .eq("taskId", taskId);
 }
