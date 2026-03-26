@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Task, StudyLog } from './Types';
 import TagInput from "./TagInput";
 import { updateTaskDB } from "../lib/db";
-import { deleteStudyLogsByTask } from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 
 // propsの型定義
 type Props = {
@@ -43,9 +43,15 @@ export default function TaskItem({
     // 学習時間を数値に変換
     const newMinutes = Number(minutes);
 
+
+    const { data: { session } } = await supabase.auth.getSession();
+
     // 前削除（このタスクの学習ログをすべて削除）
     await fetch(`/api/study-logs/${task.id}`, {
       method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${session?.access_token}`,
+    },
     });
 
      // 🔥 DB更新
