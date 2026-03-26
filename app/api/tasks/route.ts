@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
   const { data: dbUser } = await supabaseAuth
     .from("users")
     .select("id")
-    .eq("supabase_id", user.id)
+    .eq("supabaseId", user.id)
     .single();
 
   if (!dbUser) {
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
   const { data, error } = await supabaseAuth
     .from("tasks")
     .select("*")
-    .eq("user_id", dbUser.id);
+    .eq("userId", dbUser.id);
 
   if (error) {
     return Response.json({ error: error.message }, { status: 500 });
@@ -80,9 +80,9 @@ export async function GET(req: NextRequest) {
     text: task.text,
     tag: task.tag ?? "",
     done: task.done,
-    totalMinutes: task.total_minutes,
+    totalMinutes: task.totalMinutes,
     date: task.date,
-    createdAt: task.created_at,
+    createdAt: task.createdAt,
 }));
 
 return Response.json(formatted);
@@ -146,9 +146,9 @@ export async function POST(req: Request) {
     text: body.text,
     tag: body.tag,
     done: false,
-    total_minutes: 0,
+    totalMinutes: 0,
     date: new Date().toISOString(),
-    user_id: user.id,
+    userId: user.id,
   });
 
   if (error) {
@@ -214,10 +214,10 @@ export async function PUT(req: Request) {
       text: body.text,
       tag: body.tag,
       done: body.done,
-      total_minutes: body.totalMinutes,
+      totalMinutes: body.totalMinutes,
     })
     .eq("id", body.id)
-    .eq("user_id", user.id);
+    .eq("userId", user.id);
 
   if (error) {
     return Response.json({ error: error.message }, { status: 500 });
