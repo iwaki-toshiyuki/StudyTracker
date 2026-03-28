@@ -109,7 +109,7 @@ export default function TaskItem({
   return (
     <li className="rounded-lg border border-gray-200 p-4 hover:border-blue-200 hover:shadow-sm transition-all">
       <p className="text-xs text-gray-400">
-        作成日：{formatDate(task.date)}
+        作成日：{formatDate(task.createdAt)}
       </p>
       {isEditing ? (
         <div className="space-y-3">
