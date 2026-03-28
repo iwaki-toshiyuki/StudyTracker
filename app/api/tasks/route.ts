@@ -120,8 +120,14 @@ export async function GET(req: NextRequest) {
     totalMinutes: task.totalMinutes ?? task.total_minutes ?? 0,
 
     // Supabaseは日付が文字列で来るので、必要に応じて変換
-    date: new Date(task.date).toISOString(),
-    createdAt: new Date(task.createdAt ?? task.created_at).toISOString(),
+    date: task.date
+    ? new Date(task.date).toISOString()
+    : null,
+
+    createdAt:
+      task.createdAt || task.created_at
+        ? new Date(task.createdAt ?? task.created_at).toISOString()
+        : null,
 
 }));
 
