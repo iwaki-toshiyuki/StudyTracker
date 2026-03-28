@@ -119,9 +119,6 @@ export async function GET(req: NextRequest) {
     done: task.done,
     totalMinutes: task.totalMinutes ?? task.total_minutes ?? 0,
 
-    // 文字列の日付をISO形式に変換（必要に応じて）
-    date: new Date(task.date).toISOString(),
-    createdAt: new Date(task.createdAt ?? task.created_at).toISOString(),
 }));
 
   // 🔥 完了済みタスクの数も取得（ダッシュボード用）
