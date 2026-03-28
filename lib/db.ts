@@ -1,35 +1,70 @@
 import { supabase } from "./supabase";
-import { Task } from "@/components/Types";
+import { Task, GetTasksResponse } from "@/components/Types";
 
 // ローカル環境かどうかを判定するフラグ
 const isLocal = process.env.NEXT_PUBLIC_DB_MODE === "local";
 
-export async function getTasks() {
+export async function getTasks(page: number, limit: number): Promise<GetTasksResponse> {
   // 👇 セッション取得
   const { data: { session } } = await supabase.auth.getSession();
 
   // 👇 セッションがない場合は空配列を返す
   if (!session) {
     console.warn("No session");
-    return [];
+    return {
+      data: [],
+      total: 0,
+      completedCount: 0,
+    };
   }
 
   // 👇 API呼び出し（トークン付き）
-  const res = await fetch("/api/tasks", {
+  const res = await fetch(
+    // 🔥 ページネーション対応
+    `/api/tasks?page=${page}&limit=${limit}`,
+    {
     headers: {
       Authorization: `Bearer ${session?.access_token}`,
     },
   });
 
-  const data = await res.json();
+  console.log("res:", res);
 
-  // 👇 安全対策
-  if (!Array.isArray(data)) {
-    console.error("Invalid response:", data);
-    return [];
+  if (!res.ok) {
+  const text = await res.text();
+  console.error("API Error:", text);
+  return { 
+    data: [], 
+    total: 0,
+    completedCount: 0,};
+}
+
+  const json = await res.json();
+
+  console.log("json:", json);
+
+  // 🔥 APIからタスクと総数を受け取る
+  const formatted = json.data.map((task: any) => ({
+    ...task,
+    totalMinutes:
+      task.totalMinutes ?? task.total_minutes ?? 0,
+  }));
+
+  // レスポンスの形式が正しいか確認
+  if (!Array.isArray(formatted)) {
+    console.error("Invalid response:", json);
+    return {
+      data: [],
+      total: 0,
+      completedCount: 0,
+    };
   }
 
-  return data;
+  return {
+    data: formatted,
+    total: json.total,
+    completedCount: json.completedCount ?? 0,
+  };
 }
 
 // 追加

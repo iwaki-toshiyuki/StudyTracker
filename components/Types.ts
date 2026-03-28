@@ -17,3 +17,10 @@ export type StudyLog = {
   minutes: number;   // 学習時間（分）
   date: string;      // 日付
 };
+
+// APIからのレスポンス型定義
+export type GetTasksResponse = {
+  data: any[];
+  total: number;
+  completedCount: number;
+};

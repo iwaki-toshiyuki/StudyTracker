@@ -27,6 +27,9 @@ import Chart from "../components/Chart";
 import Dashboard from "../components/DashBoard";
 // 全体の学習時間や達成率を表示するダッシュボードコンポーネント
 
+import Pagination from "@/components/Pagination";
+// タスク一覧のページネーションコンポーネント
+
 import { getTasks, createTask, deleteTask as deleteTaskDB, getStudyLogs, createStudyLog, updateTaskDB } from "../lib/db";
 // DB操作関数をインポート
 
@@ -221,26 +224,30 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
     0
   );
 
-  // 完了しているタスク数
-  const completedTaskCount = tasks.filter((task) => task.done).length;
 
   // 全タスク数
   const totalTaskCount = tasks.length;
+
+  // ページネーション用のstate
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+
+  // 1ページあたりのタスク数
+  const limit = 5; // 1ページ5件
+
+  // ダッシュボード用のstate
+  const [completedTaskCount, setCompletedTaskCount] = useState(0);
 
   // タスクをAPIから再取得する関数
   const fetchTasks = async () => {
   // APIからタスクを取得してstateを更新する関数
   try {
-    const data = await getTasks();
+    const result = await getTasks(page,limit);
 
-    setTasks(
-      data.map((task: any) => ({
-        ...task,
-        // SupabaseとPrisma両対応
-        totalMinutes:
-          task.totalMinutes ?? task.total_minutes ?? 0,
-      }))
-    );
+    setTasks(result.data);
+    setTotal(result.total);
+    setCompletedTaskCount(result.completedCount);
+
   } catch (error) {
     console.error(error);
   }
@@ -265,7 +272,7 @@ useEffect(() => {
     };
 
     check();
-  }, []);
+  }, [page]); // ページが変わるたびにタスクを再取得
 
 
 
@@ -299,6 +306,14 @@ useEffect(() => {
               fetchStudyLogs={fetchStudyLogs}
               uniqueTags={uniqueTags}
               createStudyLog={addStudyLog}
+            />
+
+            {/* ページネーション */}
+            <Pagination
+              page={page}
+              total={total}
+              limit={limit}
+              onPageChange={setPage}
             />
           </div>
 
