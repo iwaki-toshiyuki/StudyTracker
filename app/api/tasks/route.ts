@@ -11,6 +11,15 @@ export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
   const token = authHeader?.replace("Bearer ", "");
 
+  // 🔥 クエリパラメータの取得
+  const { searchParams } = new URL(req.url);
+
+  // 🔥 ページ情報
+  const all = searchParams.get("all") === "true";
+  const page = Number(searchParams.get("page") || 1);
+  const limit = Number(searchParams.get("limit") || 5);
+  const offset = (page - 1) * limit;
+
   if (!token) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -33,14 +42,23 @@ export async function GET(req: NextRequest) {
     });
 
     if (!dbUser) {
-      return Response.json([], { status: 200 }); // 👈 404じゃなくてこれ推奨
-    }
+    return Response.json({
+      data: [],
+      total: 0,
+    });
+  }
 
-
-    const tasks = await prisma.task.findMany({
+    // 🔥 ページネーション追加（重要）
+  const [tasks, total] = await Promise.all([
+    prisma.task.findMany({
       where: { userId: dbUser.id },
       orderBy: { id: "desc" },
-    });
+      ...(all ? {} : { skip: offset, take: limit }),
+    }),
+    prisma.task.count({
+      where: { userId: dbUser.id },
+    }),
+  ]);
 
     const formatted = tasks.map((task: any) => ({
       ...task,
@@ -50,7 +68,20 @@ export async function GET(req: NextRequest) {
       createdAt: task.createdAt.toISOString(),
     }));
 
-    return Response.json(formatted);
+    // 🔥 完了済みタスクの数も取得（ダッシュボード用）
+    const completedCount = await prisma.task.count({
+      where: {
+        userId: dbUser.id,
+        done: true,
+      },
+    });
+
+    // クライアントにタスクと総数を返す
+    return Response.json({
+      data: formatted,
+      total: total,
+      completedCount: completedCount,
+  });
   }
 
   // 🔥 本番（Supabase）
@@ -65,16 +96,22 @@ export async function GET(req: NextRequest) {
     return Response.json([], { status: 200 });
   }
 
-  const { data, error } = await supabaseAuth
+  // 🔥 tasksテーブルからタスク取得（ページネーション対応）
+  const query = supabaseAuth
     .from("tasks")
-    .select("*")
-    .eq("userId", dbUser.id);
+    .select("*", { count: "exact" })
+    .eq("userId", dbUser.id)
+    .order("id", { ascending: false });
+
+  const { data, count, error } = all
+    ? await query
+    : await query.range(offset, offset + limit - 1);
 
   if (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
 
-  // 🔥 ここ追加
+  // Supabaseは日付が文字列で来るので、必要に応じて変換
   const formatted = data.map((task: any) => ({
     id: Number(task.id),
     text: task.text,
@@ -85,7 +122,19 @@ export async function GET(req: NextRequest) {
     createdAt: task.createdAt,
 }));
 
-return Response.json(formatted);
+  // 🔥 完了済みタスクの数も取得（ダッシュボード用）
+  const { count: completedCount } = await supabaseAuth
+  .from("tasks")
+  .select("*", { count: "exact" })
+  .eq("userId", dbUser.id)
+  .eq("done", true);
+
+// クライアントにタスクと総数を返す
+return Response.json({
+  data: formatted,
+  total: count,
+  completedCount: completedCount,
+});
 }
 
 // POST
