@@ -208,6 +208,11 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   return format(jst) === format(todayJst);
 };
 
+// ログの日付と今日の日付を比較して、正しく判定できているか確認
+studyLogs.forEach((log) => {
+  console.log("log:", log.date, isToday(log.date));
+});
+
   // 今日のログだけ抽出して合計
   const todayMinutes = studyLogs
     .filter((log) => isToday(log.date)) // 今日のログだけ（ローカル日付で比較）
