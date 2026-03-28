@@ -190,16 +190,23 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
     String(now.getDate()).padStart(2, "0"),
   ].join("-");
 
-  // ログのdateをローカル日付に変換して今日のものか判定するヘルパー関数
+  // 日付が今日かどうかをローカル時刻で判断する関数(JST基準)
   const isToday = (dateStr: string) => {
     const d = new Date(dateStr);
-    const local = [
-      d.getFullYear(),
-      String(d.getMonth() + 1).padStart(2, "0"),
-      String(d.getDate()).padStart(2, "0"),
-    ].join("-");
-    return local === today;
-  };
+
+    const jst = new Date(
+      d.toLocaleString("en-US", { timeZone: "Asia/Tokyo" })
+    );
+
+    const todayJst = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" })
+    );
+
+    const format = (date: Date) =>
+      `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+  return format(jst) === format(todayJst);
+};
 
   // 今日のログだけ抽出して合計
   const todayMinutes = studyLogs
