@@ -119,6 +119,10 @@ export async function GET(req: NextRequest) {
     done: task.done,
     totalMinutes: task.totalMinutes ?? task.total_minutes ?? 0,
 
+    // Supabaseは日付が文字列で来るので、必要に応じて変換
+    date: new Date(task.date).toISOString(),
+    createdAt: new Date(task.createdAt ?? task.created_at).toISOString(),
+
 }));
 
   // 🔥 完了済みタスクの数も取得（ダッシュボード用）
@@ -206,6 +210,7 @@ export async function POST(req: Request) {
     done: false,
     totalMinutes: 0,
     date: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
     userId: dbUser.id,
   });
 
