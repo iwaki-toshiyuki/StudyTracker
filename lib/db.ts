@@ -28,7 +28,6 @@ export async function getTasks(page: number, limit: number): Promise<GetTasksRes
     },
   });
 
-  console.log("res:", res);
 
   if (!res.ok) {
   const text = await res.text();
@@ -41,7 +40,6 @@ export async function getTasks(page: number, limit: number): Promise<GetTasksRes
 
   const json = await res.json();
 
-  console.log("json:", json);
 
   // 🔥 APIからタスクと総数を受け取る
   const formatted = json.data.map((task: any) => ({
