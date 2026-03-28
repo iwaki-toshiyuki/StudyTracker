@@ -67,6 +67,23 @@ export async function getTasks(page: number, limit: number): Promise<GetTasksRes
   };
 }
 
+// 全タスク取得（チャート・ダッシュボード計算用）
+export async function getAllTasks(): Promise<Task[]> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return [];
+
+  const res = await fetch("/api/tasks?all=true", {
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  });
+  if (!res.ok) return [];
+
+  const json = await res.json();
+  return json.data.map((task: any) => ({
+    ...task,
+    totalMinutes: task.totalMinutes ?? task.total_minutes ?? 0,
+  }));
+}
+
 // 追加
 export async function createTask(text: string, tag: string) {
   // 追加する関数

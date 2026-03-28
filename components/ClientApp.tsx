@@ -30,7 +30,7 @@ import Dashboard from "../components/DashBoard";
 import Pagination from "@/components/Pagination";
 // タスク一覧のページネーションコンポーネント
 
-import { getTasks, createTask, deleteTask as deleteTaskDB, getStudyLogs, createStudyLog, updateTaskDB } from "../lib/db";
+import { getTasks, getAllTasks, createTask, deleteTask as deleteTaskDB, getStudyLogs, createStudyLog, updateTaskDB } from "../lib/db";
 // DB操作関数をインポート
 
 export default function ClientApp({ initialTasks, initialLogs }: Props) {
@@ -38,8 +38,17 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   // 入力中のタスクを管理
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
 
+  // チャート・ダッシュボード計算用（全ページ分）
+  const [allTasks, setAllTasks] = useState<Task[]>(initialTasks);
+
   // タグ入力用
   const [tag, setTag] = useState("");
+
+  // 全タスク再取得関数（チャート・ダッシュボード用）
+  const fetchAllTasks = async () => {
+    const data = await getAllTasks();
+    setAllTasks(data);
+  };
 
   // タスク追加関数
   const addTask = async () => {
@@ -51,6 +60,7 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
 
   // タスクをAPIから再取得してstateを更新
   await fetchTasks();
+  await fetchAllTasks();
 
   setTask("");
   setTag("");
@@ -63,6 +73,7 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
 
   // 再取得
   await fetchTasks();
+  await fetchAllTasks();
   };
 
   const updateTask = (id: number, newTask: Task) => {
@@ -93,6 +104,7 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
 
     // タスクとログを再取得してグラフを即時更新
     await fetchTasks();
+    await fetchAllTasks();
     await fetchStudyLogs();
   };
 
@@ -123,8 +135,8 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   // タグごとの学習時間集計（完了済みタスクのみ）
   const tagSummary = studyLogs.reduce(
     (acc, log) => {
-      // task_idからタスクを取得
-      const task = tasks.find((t) => t.id === log.taskId);
+      // task_idからタスクを取得（全ページ対象）
+      const task = allTasks.find((t) => t.id === log.taskId);
 
       // タスクが見つからない場合、または未完了の場合はスキップ
       // → 完了チェックを入れたタスクだけグラフに反映する
@@ -199,8 +211,8 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
     .filter((log) => isToday(log.date)) // 今日のログだけ（ローカル日付で比較）
     .reduce(
       (acc, log) => {
-        // taskIdからタスクを取得
-        const task = tasks.find((t) => t.id === log.taskId);
+        // taskIdからタスクを取得（全ページ対象）
+        const task = allTasks.find((t) => t.id === log.taskId);
 
         // タスクが見つからない場合、または未完了の場合はスキップ
         if (!task || !task.done) return acc;
@@ -225,12 +237,12 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   );
 
 
-  // 全タスク数
-  const totalTaskCount = tasks.length;
-
   // ページネーション用のstate
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+
+  // 総タスク数（ダッシュボード用）
+  const totalTaskCount = total;
 
   // 1ページあたりのタスク数
   const limit = 5; // 1ページ5件
@@ -268,6 +280,7 @@ useEffect(() => {
 
       // 🔥 ログイン済みだけデータ取得
       await fetchTasks();
+      await fetchAllTasks();
       await fetchStudyLogs();
     };
 

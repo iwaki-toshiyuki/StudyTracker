@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
   // 🔥 ページ情報
+  const all = searchParams.get("all") === "true";
   const page = Number(searchParams.get("page") || 1);
   const limit = Number(searchParams.get("limit") || 5);
   const offset = (page - 1) * limit;
@@ -52,8 +53,7 @@ export async function GET(req: NextRequest) {
     prisma.task.findMany({
       where: { userId: dbUser.id },
       orderBy: { id: "desc" },
-      skip: offset,
-      take: limit,
+      ...(all ? {} : { skip: offset, take: limit }),
     }),
     prisma.task.count({
       where: { userId: dbUser.id },
@@ -97,12 +97,15 @@ export async function GET(req: NextRequest) {
   }
 
   // 🔥 tasksテーブルからタスク取得（ページネーション対応）
-  const { data, count, error } = await supabaseAuth
+  const query = supabaseAuth
     .from("tasks")
     .select("*", { count: "exact" })
     .eq("userId", dbUser.id)
-    .order("id", { ascending: false })
-    .range(offset, offset + limit - 1)
+    .order("id", { ascending: false });
+
+  const { data, count, error } = all
+    ? await query
+    : await query.range(offset, offset + limit - 1);
 
   if (error) {
     return Response.json({ error: error.message }, { status: 500 });
