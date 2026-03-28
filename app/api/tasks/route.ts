@@ -117,9 +117,9 @@ export async function GET(req: NextRequest) {
     text: task.text,
     tag: task.tag ?? "",
     done: task.done,
-    totalMinutes: task.totalMinutes,
+    totalMinutes: task.totalMinutes ?? task.total_minutes ?? 0,
     date: task.date,
-    createdAt: task.createdAt,
+    createdAt: task.createdAt ?? task.created_at,
 }));
 
   // 🔥 完了済みタスクの数も取得（ダッシュボード用）
