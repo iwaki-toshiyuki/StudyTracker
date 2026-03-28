@@ -99,12 +99,14 @@ export default function TaskItem({
   // タスクに紐づく学習ログを抽出(0分のログも含む)
   const taskTotalMinutes = task.totalMinutes ?? 0;
 
-  // 日付フォーマット関数
+  // 日付フォーマット関数(JST表示用)
   const formatDate = (dateStr: string) => {
-  const d = new Date(dateStr);
-  return `${d.getFullYear()}/${
-    String(d.getMonth() + 1).padStart(2, "0")
-  }/${String(d.getDate()).padStart(2, "0")}`;
+  return new Date(dateStr).toLocaleString("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 };
 
   return (
