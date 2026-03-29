@@ -117,6 +117,9 @@ export async function createTask(text: string, tag: string) {
     userId: dbUser.id,
   });
 
+  console.log("INSERT結果:", data);
+console.log("INSERTエラー:", error);
+
   if (error) throw error;
 
   return data;
