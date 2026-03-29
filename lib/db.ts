@@ -179,12 +179,19 @@ export async function updateTaskDB(task: Task) {
 export async function getStudyLogs() {
   const { data: { session } } = await supabase.auth.getSession();
 
-  const res = await fetch("/api/study-logs", { 
+  if (!session) return [];
+
+  const res = await fetch("/api/study-logs", {
     headers: {
-      Authorization: `Bearer ${session?.access_token}`,
+      Authorization: `Bearer ${session.access_token}`,
     },
-   });
+  });
+
+  if (!res.ok) return [];
+
   const data = await res.json();
+
+  if (!Array.isArray(data)) return [];
 
   return data;
 }
