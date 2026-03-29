@@ -87,6 +87,9 @@ export async function createTask(text: string, tag: string) {
   console.log("🔥 createTask 実行された");
   // 追加する関数
   const { data: { session } } = await supabase.auth.getSession();
+
+  console.log("session.user.id:", session?.user?.id);
+
   if (!session) throw new Error("Not authenticated");
   if (isLocal) {
     await fetch("/api/tasks", {
@@ -105,6 +108,8 @@ export async function createTask(text: string, tag: string) {
     .select("id")
     .eq("supabaseId", session.user.id)
     .single();
+
+console.log("dbUser:", dbUser);
 
   if (userError || !dbUser) throw new Error("User not found");
 
@@ -219,8 +224,6 @@ export async function createStudyLog(taskId: number, minutes: number) {
 
   // 🔥 追加：ユーザー取得
   const { data: { user } } = await supabase.auth.getUser();
-
-  console.log("auth user:", user?.id);
 
   // 🔥 usersテーブルからid取得
   const { data: dbUser } = await supabase
