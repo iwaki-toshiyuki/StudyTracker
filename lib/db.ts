@@ -216,12 +216,16 @@ export async function createStudyLog(taskId: number, minutes: number) {
   // 🔥 追加：ユーザー取得
   const { data: { user } } = await supabase.auth.getUser();
 
+  console.log("auth user:", user?.id);
+
   // 🔥 usersテーブルからid取得
   const { data: dbUser } = await supabase
     .from("users")
     .select("id")
     .eq("supabaseId", user?.id)
     .single();
+
+  console.log("dbUser:", dbUser); 
 
   if (!dbUser) throw new Error("User not found");
 
