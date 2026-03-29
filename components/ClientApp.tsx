@@ -6,6 +6,8 @@ type Props = {
     // クライアントコンポーネントのprops型
     initialTasks: Task[];
     initialLogs: StudyLog[];
+    // trueの場合、認証チェックをスキップ（親コンポーネントが認証済みを保証）
+    skipAuthRedirect?: boolean;
 };
 
 import { Task, StudyLog } from "../components/Types";
@@ -33,7 +35,7 @@ import Pagination from "@/components/Pagination";
 import { getTasks, getAllTasks, createTask, deleteTask as deleteTaskDB, getStudyLogs, createStudyLog, updateTaskDB } from "../lib/db";
 // DB操作関数をインポート
 
-export default function ClientApp({ initialTasks, initialLogs }: Props) {
+export default function ClientApp({ initialTasks, initialLogs, skipAuthRedirect = false }: Props) {
   const [task, setTask] = useState("");
   // 入力中のタスクを管理
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
@@ -245,6 +247,9 @@ export default function ClientApp({ initialTasks, initialLogs }: Props) {
   );
 
 
+  // データ取得中のローディング状態
+  const [isDataLoading, setIsDataLoading] = useState(true);
+
   // ページネーション用のstate
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -278,6 +283,16 @@ const router = useRouter();
 
 useEffect(() => {
     const check = async () => {
+      if (skipAuthRedirect) {
+        // 親コンポーネントが認証済みを保証しているので認証チェックをスキップ
+        setIsDataLoading(true);
+        await fetchTasks();
+        await fetchAllTasks();
+        await fetchStudyLogs();
+        setIsDataLoading(false);
+        return;
+      }
+
       const { data } = await supabase.auth.getSession();
 
       // ✅ 未ログイン → ログインページへ
@@ -287,15 +302,54 @@ useEffect(() => {
       }
 
       // 🔥 ログイン済みだけデータ取得
+      setIsDataLoading(true);
       await fetchTasks();
       await fetchAllTasks();
       await fetchStudyLogs();
+      setIsDataLoading(false);
     };
 
     check();
   }, [page]); // ページが変わるたびにタスクを再取得
 
 
+
+  // スケルトンローディングUI
+  if (isDataLoading) {
+    return (
+      <main className="min-h-screen bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* 左カラム スケルトン */}
+            <div className="lg:col-span-2 space-y-6">
+              <div className="bg-white rounded-xl shadow-sm p-5 animate-pulse">
+                <div className="h-10 bg-gray-200 rounded-lg mb-3" />
+                <div className="h-10 bg-gray-200 rounded-lg" />
+              </div>
+              <div className="bg-white rounded-xl shadow-sm p-5 space-y-3 animate-pulse">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="h-14 bg-gray-200 rounded-lg" />
+                ))}
+              </div>
+            </div>
+            {/* 右カラム スケルトン */}
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl shadow-sm p-5 animate-pulse">
+                <div className="grid grid-cols-2 gap-3">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="h-20 bg-gray-200 rounded-lg" />
+                  ))}
+                </div>
+              </div>
+              <div className="bg-white rounded-xl shadow-sm p-5 animate-pulse">
+                <div className="h-48 bg-gray-200 rounded-lg" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -315,19 +369,27 @@ useEffect(() => {
               addTask={addTask}
             />
 
-            {/* タスク一覧 */}
-            <TaskList
-              tasks={tasks}
-              deleteTask={deleteTask}
-              updateTask={updateTask}
-              toggleTask={toggleTask}
-              studyLogs={studyLogs}
-              setStudyLogs={setStudyLogs}
-              fetchTasks={fetchTasks}
-              fetchStudyLogs={fetchStudyLogs}
-              uniqueTags={uniqueTags}
-              createStudyLog={addStudyLog}
-            />
+            {/* タスク一覧 or 空状態 */}
+            {tasks.length === 0 ? (
+              <div className="bg-white rounded-xl shadow-sm p-10 flex flex-col items-center justify-center text-center">
+                <p className="text-4xl mb-3">📚</p>
+                <p className="text-gray-600 font-medium">タスクがありません</p>
+                <p className="text-sm text-gray-400 mt-1">最初のタスクを上のフォームから追加しましょう！</p>
+              </div>
+            ) : (
+              <TaskList
+                tasks={tasks}
+                deleteTask={deleteTask}
+                updateTask={updateTask}
+                toggleTask={toggleTask}
+                studyLogs={studyLogs}
+                setStudyLogs={setStudyLogs}
+                fetchTasks={fetchTasks}
+                fetchStudyLogs={fetchStudyLogs}
+                uniqueTags={uniqueTags}
+                createStudyLog={addStudyLog}
+              />
+            )}
 
             {/* ページネーション */}
             <Pagination
