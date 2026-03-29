@@ -84,11 +84,8 @@ export async function getAllTasks(): Promise<Task[]> {
 
 // 追加
 export async function createTask(text: string, tag: string) {
-  console.log("🔥 createTask 実行された");
   // 追加する関数
   const { data: { session } } = await supabase.auth.getSession();
-
-  console.log("session.user.id:", session?.user?.id);
 
   if (!session) throw new Error("Not authenticated");
   if (isLocal) {
@@ -109,8 +106,6 @@ export async function createTask(text: string, tag: string) {
     .eq("supabaseId", session.user.id)
     .single();
 
-console.log("dbUser:", dbUser);
-
   if (userError || !dbUser) throw new Error("User not found");
 
   const { data, error } = await supabase.from("tasks").insert({
@@ -121,9 +116,6 @@ console.log("dbUser:", dbUser);
     date: new Date().toISOString(),
     userId: dbUser.id,
   });
-
-  console.log("INSERT結果:", data);
-console.log("INSERTエラー:", error);
 
   if (error) throw error;
 
@@ -231,8 +223,6 @@ export async function createStudyLog(taskId: number, minutes: number) {
     .select("id")
     .eq("supabaseId", user?.id)
     .single();
-
-  console.log("dbUser:", dbUser); 
 
   if (!dbUser) throw new Error("User not found");
 
