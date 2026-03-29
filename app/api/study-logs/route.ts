@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { supabase } from "@/lib/supabase";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest } from "next/server";
 
@@ -18,9 +17,9 @@ export async function GET(req: NextRequest) {
 
   const supabaseAuth = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { global: { headers: { Authorization: `Bearer ${token}` } } }
   );
-
 
   // 🔥 認証トークンからユーザー情報を取得
   const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
@@ -56,7 +55,7 @@ export async function GET(req: NextRequest) {
   }
 
   // 🔥 本番（Supabase）
-  const { data: dbUser, error: userError } = await supabase
+  const { data: dbUser, error: userError } = await supabaseAuth
     .from("users")
     .select("id")
     .eq("supabaseId", user.id)
@@ -66,7 +65,7 @@ export async function GET(req: NextRequest) {
     return Response.json([], { status: 200 });
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAuth
     .from("study_logs")
     .select("*")
     .eq("userId", dbUser.id);
@@ -97,7 +96,8 @@ export async function POST(req: Request) {
 
   const supabaseAuth = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { global: { headers: { Authorization: `Bearer ${token}` } } }
   );
 
   const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
@@ -136,7 +136,7 @@ export async function POST(req: Request) {
   }
 
   // 本番（Supabase）
-  const { data: dbUser, error: userError } = await supabase
+  const { data: dbUser, error: userError } = await supabaseAuth
     .from("users")
     .select("id")
     .eq("supabaseId", user.id)
@@ -146,7 +146,7 @@ export async function POST(req: Request) {
     return Response.json({ error: "User not found" }, { status: 404 });
   }
 
-  const { data, error } = await supabase.from("study_logs").insert({
+  const { data, error } = await supabaseAuth.from("study_logs").insert({
     taskId: body.taskId,
     minutes: body.minutes,
     date: new Date().toISOString(),
