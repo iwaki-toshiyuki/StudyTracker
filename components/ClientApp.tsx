@@ -54,6 +54,7 @@ export default function ClientApp({ initialTasks, initialLogs, skipAuthRedirect 
 
   // タスク追加関数
   const addTask = async () => {
+    console.log("addTask called");
   // タスクとタグの両方が空でないことを確認
   if (!task.trim() || !tag.trim()) return;
 
