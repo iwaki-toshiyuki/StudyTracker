@@ -58,10 +58,12 @@ export default function ClientApp({ initialTasks, initialLogs, skipAuthRedirect 
 
   // タスクとタグの両方が空でないことを確認
   if (!task.trim() || !tag.trim()) {
-    console.log("② validation stop");
     return;
   }
+  console.log("createTaskの中身:", createTask);
+
   console.log("③ createTask 呼ぶ");
+  
   // タスクを追加してDBに保存
   await createTask(task, tag);
 

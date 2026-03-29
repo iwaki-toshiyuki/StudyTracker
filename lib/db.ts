@@ -84,6 +84,7 @@ export async function getAllTasks(): Promise<Task[]> {
 
 // 追加
 export async function createTask(text: string, tag: string) {
+  console.log("🔥 createTask 実行された");
   // 追加する関数
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error("Not authenticated");
