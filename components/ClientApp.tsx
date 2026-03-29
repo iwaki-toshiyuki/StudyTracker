@@ -55,9 +55,13 @@ export default function ClientApp({ initialTasks, initialLogs, skipAuthRedirect 
   // タスク追加関数
   const addTask = async () => {
     console.log("addTask called");
-  // タスクとタグの両方が空でないことを確認
-  if (!task.trim() || !tag.trim()) return;
 
+  // タスクとタグの両方が空でないことを確認
+  if (!task.trim() || !tag.trim()) {
+    console.log("② validation stop");
+    return;
+  }
+  console.log("③ createTask 呼ぶ");
   // タスクを追加してDBに保存
   await createTask(task, tag);
 
